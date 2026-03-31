@@ -1,0 +1,47 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Space+Mono:wght@400;700&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    @apply scroll-smooth;
+  }
+  
+  body {
+    @apply font-['Inter'];
+    margin: 0;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+  }
+
+  code {
+    @apply font-['Space_Mono'];
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-['Inter'] font-bold tracking-tight;
+  }
+}
+
+@layer components {
+  .glow-effect {
+    @apply shadow-lg;
+    box-shadow: 0 0 20px rgba(34, 211, 238, 0.3), inset 0 0 20px rgba(34, 211, 238, 0.1);
+  }
+
+  .glow-effect-lg {
+    box-shadow: 0 0 40px rgba(34, 211, 238, 0.4), inset 0 0 30px rgba(34, 211, 238, 0.15);
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-cyan-400 via-blue-400 to-purple-400;
+  }
+}
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
