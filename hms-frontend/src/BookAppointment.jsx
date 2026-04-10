@@ -97,7 +97,7 @@ const BookAppointment = ({ onBookSuccess }) => {
 
     setLoading(true);
     try {
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_API_URL}/api/book-appointment/`,
         {
           doctor_id: parseInt(selectedDoctor),

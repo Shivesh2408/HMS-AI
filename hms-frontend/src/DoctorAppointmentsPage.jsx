@@ -23,30 +23,29 @@ const DoctorAppointmentsPage = () => {
   };
 
   useEffect(() => {
+    const fetchAppointments = async () => {
+      setLoading(true);
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/doctor/appointments/`, {
+          headers: { 'Authorization': `Token ${token}` },
+        });
+        setAppointments(response.data);
+      } catch (err) {
+        setError('Failed to fetch appointments');
+        console.error('Error:', err);
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchAppointments();
-  }, []);
-
-  const fetchAppointments = async () => {
-    setLoading(true);
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/doctor/appointments/`, {
-        headers: { 'Authorization': `Token ${token}` },
-      });
-      setAppointments(response.data);
-    } catch (err) {
-      setError('Failed to fetch appointments');
-      console.error('Error:', err);
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [token]);
 
   const handleStatusUpdate = async (appointmentId, newStatus) => {
     try {
       setMessage('');
       setError('');
 
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_API_URL}/api/doctor/update-appointment-status/`,
         {
           appointment_id: appointmentId,

@@ -12,7 +12,6 @@ function Chat() {
   ]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const token = localStorage.getItem('authToken');
   const messagesEndRef = useRef(null);
 
@@ -41,7 +40,14 @@ function Chat() {
 
     try {
       if (!token) {
-        setError('Authentication required. Please login.');
+        const errorMessage = {
+          id: messages.length + 1,
+          text: "Authentication required. Please login.",
+          sender: "ai",
+          timestamp: new Date(),
+        };
+        setMessages((prev) => [...prev, errorMessage]);
+        setLoading(false);
         return;
       }
 

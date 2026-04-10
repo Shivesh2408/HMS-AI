@@ -25,27 +25,26 @@ const Pharmacy = () => {
   };
 
   useEffect(() => {
+    const fetchMedicines = async () => {
+      try {
+        setLoading(true);
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/medicines/`, {
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        setMedicines(response.data || []);
+        setError('');
+      } catch (err) {
+        console.error('Error fetching medicines:', err);
+        setError('Failed to fetch medicines');
+      } finally {
+        setLoading(false);
+      }
+    };
     fetchMedicines();
-  }, []);
-
-  const fetchMedicines = async () => {
-    try {
-      setLoading(true);
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/medicines/`, {
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      setMedicines(response.data || []);
-      setError('');
-    } catch (err) {
-      console.error('Error fetching medicines:', err);
-      setError('Failed to fetch medicines');
-    } finally {
-      setLoading(false);
-    }
-  };
+  }, [token]);
 
   const handleQuantityChange = (medicineId, value) => {
     setQuantities({
@@ -117,7 +116,7 @@ const Pharmacy = () => {
         quantity: item.quantity,
       }));
 
-      const response = await axios.post(
+      await axios.post(
         `${process.env.REACT_APP_API_URL}/api/create-bill/`,
         { items },
         {

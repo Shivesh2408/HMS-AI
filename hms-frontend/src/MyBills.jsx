@@ -29,38 +29,37 @@ const MyBills = () => {
   };
 
   useEffect(() => {
-    fetchBills();
-  }, []);
+    const fetchBills = async () => {
+      try {
+        setLoading(true);
+        if (!token) {
+          setError('No authentication token found. Please login again.');
+          setLoading(false);
+          return;
+        }
 
-  const fetchBills = async () => {
-    try {
-      setLoading(true);
-      if (!token) {
-        setError('No authentication token found. Please login again.');
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/my-bills/`, {
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+
+        setBills(response.data || []);
+        setError('');
+      } catch (err) {
+        console.error('Error fetching bills:', err);
+        if (err.response?.status === 401) {
+          setError('Authentication failed. Please login again.');
+        } else {
+          setError(err.response?.data?.error || 'Failed to fetch bills');
+        }
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/my-bills/`, {
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-
-      setBills(response.data || []);
-      setError('');
-    } catch (err) {
-      console.error('Error fetching bills:', err);
-      if (err.response?.status === 401) {
-        setError('Authentication failed. Please login again.');
-      } else {
-        setError(err.response?.data?.error || 'Failed to fetch bills');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchBills();
+  }, [token]);
 
   const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('en-US', {

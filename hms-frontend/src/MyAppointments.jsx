@@ -29,41 +29,40 @@ const MyAppointments = ({ refreshTrigger }) => {
   };
 
   useEffect(() => {
-    fetchAppointments();
-  }, [refreshTrigger]);
+    const fetchAppointments = async () => {
+      try {
+        setLoading(true);
+        
+        if (!token) {
+          setError('No authentication token found. Please login again.');
+          setLoading(false);
+          return;
+        }
 
-  const fetchAppointments = async () => {
-    try {
-      setLoading(true);
-      
-      if (!token) {
-        setError('No authentication token found. Please login again.');
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/my-appointments/`, {
+          headers: {
+            'Authorization': `Token ${token}`,
+            'Content-Type': 'application/json',
+          },
+        });
+        
+        setAppointments(response.data || []);
+        setError('');
+      } catch (err) {
+        console.error('Error fetching appointments:', err);
+        if (err.response?.status === 401) {
+          setError('Authentication failed. Please login again.');
+        } else if (err.response?.status === 403) {
+          setError('Access denied. Please check your permissions.');
+        } else {
+          setError('Failed to fetch appointments');
+        }
+      } finally {
         setLoading(false);
-        return;
       }
-
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/my-appointments/`, {
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      
-      setAppointments(response.data || []);
-      setError('');
-    } catch (err) {
-      console.error('Error fetching appointments:', err);
-      if (err.response?.status === 401) {
-        setError('Authentication failed. Please login again.');
-      } else if (err.response?.status === 403) {
-        setError('Access denied. Please check your permissions.');
-      } else {
-        setError(err.response?.data?.error || 'Failed to fetch appointments');
-      }
-    } finally {
-      setLoading(false);
-    }
-  };
+    };
+    fetchAppointments();
+  }, [refreshTrigger, token]);
 
   const getStatusColor = (status) => {
     switch (status) {

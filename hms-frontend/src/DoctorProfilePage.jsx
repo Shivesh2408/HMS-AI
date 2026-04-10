@@ -28,21 +28,20 @@ const DoctorProfilePage = () => {
   };
 
   useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/doctor/profile/`, {
+          headers: { 'Authorization': `Token ${token}` },
+        });
+        setProfileData(response.data);
+        setFormData(response.data);
+      } catch (err) {
+        setError('Failed to fetch profile');
+        console.error('Error:', err);
+      }
+    };
     fetchProfile();
-  }, []);
-
-  const fetchProfile = async () => {
-    try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/doctor/profile/`, {
-        headers: { 'Authorization': `Token ${token}` },
-      });
-      setProfileData(response.data);
-      setFormData(response.data);
-    } catch (err) {
-      setError('Failed to fetch profile');
-      console.error('Error:', err);
-    }
-  };
+  }, [token]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
