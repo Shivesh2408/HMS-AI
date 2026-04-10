@@ -261,8 +261,14 @@ class LoginView(APIView):
                 print(f"[LOGIN] User authenticated: {user.username}")
                 token, _ = Token.objects.get_or_create(user=user)
                 
-                # Get role from profile
-                role = user.profile.role if hasattr(user, 'profile') else 'patient'
+                # Get or create profile with role
+                try:
+                    role = user.profile.role
+                except:
+                    # If profile doesn't exist, create one
+                    UserProfile.objects.get_or_create(user=user, defaults={'role': 'admin' if user.is_superuser else 'patient'})
+                    role = user.profile.role
+                
                 print(f"[LOGIN] User role: {role}")
                 
                 # Validate role
