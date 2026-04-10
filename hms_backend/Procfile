@@ -1,2 +1,2 @@
-release: python manage.py migrate --noinput
+release: python manage.py migrate --noinput; python manage.py setup_initial_data
 web: gunicorn --bind 0.0.0.0:$PORT hms_backend.wsgi
