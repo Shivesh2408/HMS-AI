@@ -97,7 +97,7 @@ DATABASES = {
         'PORT': os.getenv('DB_PORT', '5432'),
         'CONN_MAX_AGE': 600,
         'OPTIONS': {
-            'sslmode': 'prefer',  # Use prefer instead of require for better compatibility
+            'sslmode': 'disable',  # Disable SSL to test connection
             'connect_timeout': 10,
         } if 'render.com' in db_host else {},
     }
