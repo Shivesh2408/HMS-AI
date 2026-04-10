@@ -83,8 +83,6 @@ WSGI_APPLICATION = 'hms_backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-import os
-
 # Simple, reliable database configuration
 db_host = os.getenv('DB_HOST', 'localhost')
 
