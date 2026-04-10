@@ -85,38 +85,23 @@ WSGI_APPLICATION = 'hms_backend.wsgi.application'
 
 import os
 
-# Database configuration - try multiple approaches for reliability
+# Simple, reliable database configuration
 db_host = os.getenv('DB_HOST', 'localhost')
-db_config = None
 
-# Approach 1: Check if dj_database_url can parse DATABASE_URL
-try:
-    import dj_database_url
-    if os.environ.get('DATABASE_URL'):
-        db_config = dj_database_url.config(
-            default=os.environ['DATABASE_URL'],
-            conn_max_age=600,
-        )
-except Exception as e:
-    print(f"Warning: Could not use dj_database_url: {e}")
-
-# Approach 2: Use individual environment variables (fallback)
-if not db_config:
-    db_config = {
+DATABASES = {
+    'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'hms_db'),
         'USER': os.getenv('DB_USER', 'hms_user'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'hms_password'),
         'HOST': db_host,
         'PORT': os.getenv('DB_PORT', '5432'),
-        'CONN_MAX_AGE': 600,
+        'CONN_MAX_AGE': 0,  # Disable connection pooling
         'OPTIONS': {
             'sslmode': 'require',
+            'connect_timeout': 10,
         } if 'render.com' in db_host else {},
     }
-
-DATABASES = {
-    'default': db_config
 }
 
 
