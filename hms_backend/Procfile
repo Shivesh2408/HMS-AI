@@ -1,1 +1,2 @@
-web: gunicorn hms_backend.wsgi
+web: gunicorn --bind 0.0.0.0:$PORT hms_backend.wsgi
+release: python manage.py migrate --noinput
