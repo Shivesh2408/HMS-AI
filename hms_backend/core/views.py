@@ -161,9 +161,11 @@ Please respond with:
 Keep your answer short and clear. 
 IMPORTANT: Do NOT give a final diagnosis. Always remind the user to consult a doctor if symptoms are serious."""
                     response = model.generate_content(full_prompt)
-                    ai_reply = response.text
+                    ai_reply = response.text if response else None
                 except Exception as e:
-                    print("GEMINI ERROR:", str(e))
+                    print(f"GEMINI ERROR: {type(e).__name__}: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
                     ai_reply = None
             
             # Use fallback if Gemini fails or not configured
