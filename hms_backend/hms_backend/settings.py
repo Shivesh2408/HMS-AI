@@ -84,19 +84,14 @@ WSGI_APPLICATION = 'hms_backend.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 import os
+import dj_database_url
 
 DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'hms_db'),
-        'USER': os.getenv('DB_USER', 'hms_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'hms_password'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'OPTIONS': {
-            'sslmode': 'require',
-        } if 'render.com' in os.getenv('DB_HOST', '') else {},
-    }
+    'default': dj_database_url.config(
+        default=f'postgresql://{os.getenv("DB_USER")}:{os.getenv("DB_PASSWORD")}@{os.getenv("DB_HOST")}:{os.getenv("DB_PORT")}/{os.getenv("DB_NAME")}',
+        conn_max_age=600,
+        conn_health_checks=True,
+    )
 }
 
 
