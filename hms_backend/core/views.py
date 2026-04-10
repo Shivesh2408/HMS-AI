@@ -250,16 +250,40 @@ class LoginView(APIView):
             
             print(f"[LOGIN] Attempt for username: {username}")
             
-            serializer = LoginSerializer(data=request.data)
-            if not serializer.is_valid():
-                print(f"[LOGIN ERROR] Invalid serializer data: {serializer.errors}")
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            try:
+                serializer = LoginSerializer(data=request.data)
+                if not serializer.is_valid():
+                    print(f"[LOGIN ERROR] Invalid serializer data: {serializer.errors}")
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+            except Exception as e:
+                print(f"[LOGIN] Serializer error: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                return Response({
+                    'error': f'Serializer error: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
-            user = authenticate(username=username, password=password)
+            try:
+                user = authenticate(username=username, password=password)
+            except Exception as e:
+                print(f"[LOGIN] Auth error: {str(e)}")
+                import traceback
+                traceback.print_exc()
+                return Response({
+                    'error': f'Authentication error: {str(e)}'
+                }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
             
             if user is not None:
                 print(f"[LOGIN] User authenticated: {user.username}")
-                token, _ = Token.objects.get_or_create(user=user)
+                try:
+                    token, _ = Token.objects.get_or_create(user=user)
+                except Exception as e:
+                    print(f"[LOGIN] Token create error: {str(e)}")
+                    import traceback
+                    traceback.print_exc()
+                    return Response({
+                        'error': f'Token creation error: {str(e)}'
+                    }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
                 
                 # Get or create profile with role
                 try:
@@ -306,7 +330,7 @@ class LoginView(APIView):
             import traceback
             traceback.print_exc()
             return Response({
-                'error': 'An error occurred during login. Please try again.'
+                'error': str(e)
             }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
 
