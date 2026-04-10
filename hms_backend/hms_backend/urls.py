@@ -46,6 +46,7 @@ from core.views import (
     UpdateAppointmentStatusView,
     AdminStatsView,
 )
+from core.diag import DiagnosticsView
 
 router = DefaultRouter()
 router.register(r'patients', PatientViewSet)
@@ -58,6 +59,7 @@ router.register(r'security', SecurityManagerViewSet)
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/diagnostics/', DiagnosticsView.as_view()),
     path('api/login/', LoginView.as_view()),
     path('api/signup/', SignupView.as_view()),
     path('api/chat/', ChatbotView.as_view()),
