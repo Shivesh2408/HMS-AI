@@ -98,7 +98,6 @@ DATABASES = {
         'CONN_MAX_AGE': 600,
         'OPTIONS': {
             'sslmode': 'require',
-            'sslrootcert': '/etc/ssl/certs/ca-certificates.crt',
         } if 'render.com' in db_host else {},
     }
 }
