@@ -84,30 +84,18 @@ WSGI_APPLICATION = 'hms_backend.wsgi.application'
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
 import os
-import dj_database_url
 
-# Use Render's DATABASE_URL if available, otherwise build from env vars
-if os.getenv('DATABASE_URL'):
-    # Render provides DATABASE_URL for managed databases
-    DATABASES = {
-        'default': dj_database_url.config(
-            default=os.getenv('DATABASE_URL'),
-            conn_max_age=600,
-            conn_health_checks=True,
-        )
+DATABASES = {
+    'default': {
+        'ENGINE': 'django.db.backends.postgresql',
+        'NAME': os.getenv('DB_NAME', 'hms_db'),
+        'USER': os.getenv('DB_USER', 'hms_user'),
+        'PASSWORD': os.getenv('DB_PASSWORD', 'hms_password'),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
+        'CONN_MAX_AGE': 600,
     }
-else:
-    # Fallback for local development
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'NAME': os.getenv('DB_NAME', 'hms_db'),
-            'USER': os.getenv('DB_USER', 'hms_user'),
-            'PASSWORD': os.getenv('DB_PASSWORD', 'hms_password'),
-            'HOST': os.getenv('DB_HOST', 'localhost'),
-            'PORT': os.getenv('DB_PORT', '5432'),
-        }
-    }
+}
 
 
 # Password validation
