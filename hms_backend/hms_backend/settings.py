@@ -85,15 +85,20 @@ WSGI_APPLICATION = 'hms_backend.wsgi.application'
 
 import os
 
+db_host = os.getenv('DB_HOST', 'localhost')
+
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql',
         'NAME': os.getenv('DB_NAME', 'hms_db'),
         'USER': os.getenv('DB_USER', 'hms_user'),
         'PASSWORD': os.getenv('DB_PASSWORD', 'hms_password'),
-        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'HOST': db_host,
         'PORT': os.getenv('DB_PORT', '5432'),
         'CONN_MAX_AGE': 600,
+        'OPTIONS': {
+            'sslmode': 'require',
+        } if 'render.com' in db_host else {},
     }
 }
 
