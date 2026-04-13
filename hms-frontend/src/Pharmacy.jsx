@@ -151,21 +151,21 @@ const Pharmacy = () => {
     >
       <div className="flex justify-between items-start mb-8">
         <motion.div variants={cardVariants}>
-          <h1 className="text-4xl font-black bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-2">
+          <h1 className="text-4xl font-black text-cyan-400 mb-2">
             Pharmacy Store
           </h1>
-          <div className="h-1 w-32 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full"></div>
+          <div className="h-1 w-32 bg-[#2563EB] rounded-full"></div>
         </motion.div>
 
         {cart.length > 0 && (
           <motion.button
             onClick={() => setShowCart(!showCart)}
-            className="relative px-6 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 rounded-lg font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300"
+            className="px-6 py-3 bg-[#2563EB] text-white rounded-lg font-semibold hover:bg-[#1d4ed8] transition-all duration-300 shadow-lg"
           >
             <span className="flex items-center gap-2">
               <span>Shopping Cart ({cart.length})</span>
               {cart.length > 0 && (
-                <span className="bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold">
+                <span className="bg-red-500/200 text-white px-2 py-1 rounded-full text-sm font-bold">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
                 </span>
               )}
@@ -179,7 +179,7 @@ const Pharmacy = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 font-semibold mb-6"
+          className="p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 font-semibold mb-6"
         >
           ✗ {error}
         </motion.div>
@@ -190,7 +190,7 @@ const Pharmacy = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 font-semibold mb-6"
+          className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 font-semibold mb-6"
         >
           ✓ {success}
         </motion.div>
@@ -208,7 +208,7 @@ const Pharmacy = () => {
               <motion.div
                 animate={{ rotate: 360 }}
                 transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-                className="w-12 h-12 rounded-full border-4 border-cyan-500/20 border-t-cyan-500"
+                className="w-12 h-12 rounded-full border-4 border-cyan-500/10 border-t-[#2563EB]"
               />
             </motion.div>
           ) : medicines.length === 0 ? (
@@ -228,11 +228,9 @@ const Pharmacy = () => {
                   variants={cardVariants}
                   initial="hidden"
                   animate="visible"
-                  className="relative bg-gradient-to-br from-gray-900/60 to-gray-950/60 backdrop-blur-xl border border-cyan-500/10 rounded-xl p-6 hover:border-cyan-500/30 transition-all duration-300"
+                  className="bg-gray-900/60 border border-cyan-500/10 rounded-12 p-6 shadow-lg hover:shadow-lg-lg transition-all duration-300"
                 >
-                  <div className="absolute -inset-1 bg-gradient-to-r from-cyan-600/20 via-blue-600/20 to-purple-600/20 rounded-xl opacity-0 hover:opacity-75 blur-2xl transition-all duration-500 ease-in-out pointer-events-none"></div>
-                  
-                  <div className="relative">
+                  <div>
                     <h3 className="text-lg font-bold text-white mb-2">{medicine.name}</h3>
                     
                     <div className="grid grid-cols-2 gap-4 mb-4">
@@ -242,7 +240,7 @@ const Pharmacy = () => {
                       </div>
                       <div>
                         <p className="text-gray-400 text-sm">Stock</p>
-                        <p className={`text-xl font-bold ${medicine.stock > 0 ? 'text-green-400' : 'text-red-400'}`}>
+                        <p className={`text-xl font-bold ${medicine.stock > 0 ? 'text-green-600' : 'text-red-600'}`}>
                           {medicine.stock}
                         </p>
                       </div>
@@ -261,13 +259,13 @@ const Pharmacy = () => {
                           value={quantities[medicine.id] || ''}
                           onChange={(e) => handleQuantityChange(medicine.id, e.target.value)}
                           placeholder="Qty"
-                          className="w-20 px-3 py-2 bg-gray-800/50 border border-cyan-500/30 rounded text-white text-center focus:outline-none focus:border-cyan-500"
+                          className="w-20 px-3 py-2 bg-gray-800/50 border border-cyan-500/10 rounded text-white text-center focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-[#2563EB]/20"
                         />
                         <motion.button
                           onClick={() => addToCart(medicine)}
                           whileHover={{ scale: 1.05 }}
                           whileTap={{ scale: 0.95 }}
-                          className="flex-1 px-4 py-2 bg-gradient-to-r from-cyan-500 to-blue-600 rounded font-semibold hover:shadow-lg hover:shadow-cyan-500/50 transition-all duration-300"
+                          className="flex-1 px-4 py-2 bg-[#2563EB] text-white rounded font-semibold hover:bg-[#1d4ed8] transition-all duration-300"
                         >
                           Add to Cart
                         </motion.button>
@@ -275,7 +273,7 @@ const Pharmacy = () => {
                     ) : (
                       <button
                         disabled
-                        className="w-full px-4 py-2 bg-gray-600 text-gray-400 rounded font-semibold cursor-not-allowed"
+                        className="w-full px-4 py-2 bg-gray-800/50 text-gray-400 rounded font-semibold cursor-not-allowed border border-cyan-500/10"
                       >
                         Out of Stock
                       </button>
@@ -294,7 +292,7 @@ const Pharmacy = () => {
             animate={{ x: 0, opacity: 1 }}
             className="lg:col-span-1"
           >
-            <div className="relative bg-gradient-to-br from-gray-900/60 to-gray-950/60 backdrop-blur-xl border border-cyan-500/10 rounded-xl p-6 sticky top-8">
+            <div className="bg-gray-900/60 border border-cyan-500/10 rounded-12 p-6 sticky top-8 shadow-lg">
               <h2 className="text-2xl font-bold text-white mb-4 flex items-center gap-2">
                 <span>🛒</span> Cart Summary
               </h2>
@@ -303,7 +301,7 @@ const Pharmacy = () => {
                 {cart.map((item) => (
                   <motion.div
                     key={item.medicine.id}
-                    className="flex justify-between items-start bg-gray-800/30 p-3 rounded"
+                    className="flex justify-between items-start bg-gray-800/50 p-3 rounded border border-cyan-500/10"
                   >
                     <div className="flex-1">
                       <p className="text-white font-semibold text-sm">{item.medicine.name}</p>
@@ -316,11 +314,11 @@ const Pharmacy = () => {
                         max={item.medicine.stock}
                         value={item.quantity}
                         onChange={(e) => updateCartQuantity(item.medicine.id, parseInt(e.target.value) || 0)}
-                        className="w-12 px-2 py-1 bg-gray-700 border border-cyan-500/20 rounded text-white text-center focus:outline-none"
+                        className="w-12 px-2 py-1 bg-gray-900/60 border border-cyan-500/10 rounded text-white text-center focus:outline-none focus:border-cyan-500"
                       />
                       <button
                         onClick={() => removeFromCart(item.medicine.id)}
-                        className="text-red-400 hover:text-red-300 text-lg"
+                        className="text-red-500 hover:text-red-600 text-lg"
                       >
                         ✕
                       </button>
@@ -329,7 +327,7 @@ const Pharmacy = () => {
                 ))}
               </div>
 
-              <div className="border-t border-cyan-500/20 pt-4 mb-4">
+              <div className="border-t border-cyan-500/10 pt-4 mb-4">
                 <div className="flex justify-between items-center mb-2">
                   <span className="text-gray-400">Subtotal:</span>
                   <span className="text-white font-semibold">₹ {total}</span>
@@ -345,14 +343,14 @@ const Pharmacy = () => {
                 disabled={processingOrder}
                 whileHover={{ scale: 1.02 }}
                 whileTap={{ scale: 0.98 }}
-                className="w-full px-4 py-3 bg-gradient-to-r from-yellow-500 to-orange-600 rounded-lg font-bold text-black hover:shadow-lg hover:shadow-yellow-500/50 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 bg-green-600 text-white rounded-lg font-bold hover:bg-green-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               >
                 {processingOrder ? 'Processing...' : 'Proceed to Checkout'}
               </motion.button>
 
               <motion.button
                 onClick={() => setCart([])}
-                className="w-full mt-3 px-4 py-2 border border-red-500/50 text-red-400 rounded-lg font-semibold hover:bg-red-500/10 transition-all duration-300"
+                className="w-full mt-3 px-4 py-2 border border-red-300 text-red-600 rounded-lg font-semibold hover:bg-red-500/20 transition-all duration-300"
               >
                 Clear Cart
               </motion.button>

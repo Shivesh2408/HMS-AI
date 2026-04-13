@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import DoctorProfilePage from './DoctorProfilePage';
 import DoctorSchedulePage from './DoctorSchedulePage';
 import DoctorAppointmentsPage from './DoctorAppointmentsPage';
+import DoctorPrescriptions from './DoctorPrescriptions';
 
 const DoctorDashboard = () => {
   const navigate = useNavigate();
@@ -37,6 +38,7 @@ const DoctorDashboard = () => {
     { id: 'profile', label: 'My Profile', icon: '👤' },
     { id: 'schedule', label: 'My Schedule', icon: '📅' },
     { id: 'appointments', label: 'Appointments', icon: '📋' },
+    { id: 'prescriptions', label: 'Prescriptions', icon: '💊' },
   ];
 
   const pageVariants = {
@@ -207,6 +209,12 @@ const DoctorDashboard = () => {
               {activeTab === 'appointments' && (
                 <motion.div key="appointments" variants={pageVariants} initial="initial" animate="animate" exit="exit">
                   <DoctorAppointmentsPage />
+                </motion.div>
+              )}
+
+              {activeTab === 'prescriptions' && (
+                <motion.div key="prescriptions" variants={pageVariants} initial="initial" animate="animate" exit="exit">
+                  <DoctorPrescriptions />
                 </motion.div>
               )}
             </AnimatePresence>

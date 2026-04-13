@@ -54,56 +54,135 @@ const SimpleLogin = () => {
   };
 
   return (
-    <div style={{ maxWidth: '400px', margin: '50px auto', padding: '20px', border: '1px solid #ccc' }}>
-      <h1>Login</h1>
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-      <form onSubmit={handleLogin}>
-        <div style={{ marginBottom: '10px' }}>
-          <label>Username:</label>
-          <input
-            type="text"
-            value={username}
-            onChange={(e) => setUsername(e.target.value)}
-            style={{ width: '100%', padding: '8px' }}
-            required
-          />
-        </div>
-        <div style={{ marginBottom: '10px' }}>
-          <label>Password:</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            style={{ width: '100%', padding: '8px' }}
-            required
-          />
-        </div>
-        <button
-          type="submit"
-          disabled={loading}
-          style={{
-            width: '100%',
-            padding: '10px',
-            backgroundColor: loading ? '#ccc' : '#007bff',
-            color: 'white',
-            border: 'none',
-            cursor: loading ? 'not-allowed' : 'pointer',
-          }}
-        >
-          {loading ? 'Logging in...' : 'Login'}
-        </button>
-      </form>
-      <p style={{ marginTop: '20px' }}>
-        <a href="/simple-signup">Don't have an account? Sign up</a>
-      </p>
-      <hr />
-      <p style={{ fontSize: '12px', color: '#666' }}>
-        TEST CREDENTIALS:
-        <br />
-        Username: testfix999
-        <br />
-        Password: pass123456
-      </p>
+    <div style={{
+      minHeight: '100vh',
+      display: 'flex',
+      alignItems: 'center',
+      justifyContent: 'center',
+      backgroundColor: '#F8FAFC',
+      padding: '20px',
+      fontFamily: 'Inter, sans-serif'
+    }}>
+      <div style={{
+        maxWidth: '400px',
+        width: '100%',
+        padding: '32px',
+        backgroundColor: '#FFFFFF',
+        border: '1px solid #E2E8F0',
+        borderRadius: '12px',
+        boxShadow: '0 4px 12px rgba(0, 0, 0, 0.05)'
+      }}>
+        <h1 style={{ textAlign: 'center', color: '#2563EB', marginBottom: '8px' }}>HMS</h1>
+        <p style={{ textAlign: 'center', fontSize: '12px', color: '#64748B', marginBottom: '32px' }}>
+          Hospital Management System
+        </p>
+
+        {error && (
+          <p style={{
+            color: '#dc2626',
+            backgroundColor: '#fee2e2',
+            padding: '12px',
+            borderRadius: '8px',
+            marginBottom: '16px',
+            fontSize: '14px'
+          }}>
+            {error}
+          </p>
+        )}
+
+        <form onSubmit={handleLogin}>
+          <div style={{ marginBottom: '16px' }}>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#2563EB', marginBottom: '8px' }}>
+              Username
+            </label>
+            <input
+              type="text"
+              value={username}
+              onChange={(e) => setUsername(e.target.value)}
+              placeholder="Enter username"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #E2E8F0',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                transition: 'all 0.3s'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#2563EB';
+                e.target.style.boxShadow = '0 0 0 3px #2563EB20';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#E2E8F0';
+                e.target.style.boxShadow = 'none';
+              }}
+              required
+            />
+          </div>
+
+          <div style={{ marginBottom: '24px' }}>
+            <label style={{ display: 'block', fontSize: '14px', fontWeight: 'bold', color: '#2563EB', marginBottom: '8px' }}>
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Enter password"
+              style={{
+                width: '100%',
+                padding: '10px 12px',
+                border: '1px solid #E2E8F0',
+                borderRadius: '8px',
+                fontSize: '14px',
+                boxSizing: 'border-box',
+                transition: 'all 0.3s'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = '#2563EB';
+                e.target.style.boxShadow = '0 0 0 3px #2563EB20';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = '#E2E8F0';
+                e.target.style.boxShadow = 'none';
+              }}
+              required
+            />
+          </div>
+
+          <button
+            type="submit"
+            disabled={loading}
+            style={{
+              width: '100%',
+              padding: '12px',
+              backgroundColor: loading ? '#cbd5e1' : '#2563EB',
+              color: 'white',
+              border: 'none',
+              borderRadius: '8px',
+              cursor: loading ? 'not-allowed' : 'pointer',
+              fontWeight: 'bold',
+              fontSize: '14px',
+              transition: 'all 0.3s'
+            }}
+            onMouseEnter={(e) => !loading && (e.target.style.backgroundColor = '#1d4ed8')}
+            onMouseLeave={(e) => !loading && (e.target.style.backgroundColor = '#2563EB')}
+          >
+            {loading ? 'Logging in...' : 'Login'}
+          </button>
+        </form>
+
+        <p style={{ marginTop: '24px', textAlign: 'center', fontSize: '14px', color: '#64748B' }}>
+          <a href="/simple-signup" style={{ color: '#2563EB', textDecoration: 'none', fontWeight: '500' }}>
+            Don't have an account? Sign up
+          </a>
+        </p>
+        <hr style={{ margin: '24px 0', borderColor: '#E2E8F0' }} />
+        <p style={{ fontSize: '12px', color: '#94A3B8', textAlign: 'center', marginTop: '16px' }}>
+          Test Credentials: demo / demo123
+        </p>
+      </div>
     </div>
   );
 };

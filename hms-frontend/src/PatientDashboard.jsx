@@ -7,6 +7,7 @@ import BookAppointment from './BookAppointment';
 import MyAppointments from './MyAppointments';
 import Pharmacy from './Pharmacy';
 import MyBills from './MyBills';
+import MedicalRecords from './MedicalRecords';
 
 const PatientDashboard = () => {
   const navigate = useNavigate();
@@ -70,6 +71,7 @@ const PatientDashboard = () => {
     { id: 'my-appointments', label: 'My Appointments', icon: '📋' },
     { id: 'pharmacy', label: 'Pharmacy', icon: '💊' },
     { id: 'my-bills', label: 'My Bills', icon: '🧾' },
+    { id: 'medical-records', label: 'My Records', icon: '📁' },
     { id: 'chatbot', label: 'Chatbot', icon: '🤖' },
   ];
 
@@ -286,6 +288,7 @@ const PatientDashboard = () => {
               {activeTab === 'my-appointments' && <MyAppointments refreshTrigger={refreshAppointments} />}
               {activeTab === 'pharmacy' && <Pharmacy />}
               {activeTab === 'my-bills' && <MyBills />}
+              {activeTab === 'medical-records' && <MedicalRecords />}
               {activeTab === 'chatbot' && <Chat />}
             </AnimatePresence>
           </div>

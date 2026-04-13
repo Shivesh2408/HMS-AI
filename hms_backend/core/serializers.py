@@ -206,11 +206,28 @@ class BookAppointmentSerializer(serializers.ModelSerializer):
 class AppointmentDetailSerializer(serializers.ModelSerializer):
     doctor_name = serializers.SerializerMethodField()
     patient_name = serializers.SerializerMethodField()
+    patient_username = serializers.SerializerMethodField()
+    appointment_date = serializers.SerializerMethodField()
     doctor_specialization = serializers.SerializerMethodField()
     
     class Meta:
         model = Appointment
-        fields = ('id', 'date', 'time', 'status', 'diagnosis', 'notes', 'doctor_name', 'patient_name', 'doctor_specialization', 'created_at')
+        fields = ('id', 'date', 'time', 'appointment_date', 'status', 'diagnosis', 'notes', 'doctor_name', 'patient_name', 'patient_username', 'patient_user', 'doctor_specialization', 'created_at')
+    
+    def to_representation(self, instance):
+        """Override to include patient_user as patient_user_id"""
+        data = super().to_representation(instance)
+        
+        # Ensure patient_user_id is always included
+        if instance.patient_user:
+            data['patient_user_id'] = instance.patient_user.id
+        else:
+            data['patient_user_id'] = None
+            
+        # Also keep patient_user as the ID (overwrite the default serialization)
+        data['patient_user'] = instance.patient_user.id if instance.patient_user else None
+        
+        return data
     
     def get_doctor_name(self, obj):
         if obj.doctor:
@@ -222,6 +239,16 @@ class AppointmentDetailSerializer(serializers.ModelSerializer):
     def get_patient_name(self, obj):
         if obj.patient_user:
             return obj.patient_user.first_name or obj.patient_user.username
+        return None
+
+    def get_patient_username(self, obj):
+        if obj.patient_user:
+            return obj.patient_user.username
+        return None
+    
+    def get_appointment_date(self, obj):
+        if obj.date:
+            return obj.date
         return None
     
     def get_doctor_specialization(self, obj):
@@ -271,22 +298,39 @@ class PrescriptionSerializer(serializers.ModelSerializer):
 
 
 class CreatePrescriptionSerializer(serializers.ModelSerializer):
+    patient_user = serializers.PrimaryKeyRelatedField(
+        queryset=User.objects.all(),
+        write_only=True,
+        required=False,
+    )
+
     class Meta:
         model = Prescription
-        fields = ('medicine', 'quantity', 'notes')
+        fields = ('patient_user', 'medicine', 'quantity', 'notes')
     
     def validate(self, data):
         medicine = data.get('medicine')
         quantity = data.get('quantity')
+        request_user = self.context['request'].user
+        patient_user = data.get('patient_user')
         
         if medicine.stock < quantity:
             raise serializers.ValidationError(f"Insufficient stock. Available: {medicine.stock}, Required: {quantity}")
+
+        # Doctors must prescribe to a selected patient user.
+        if hasattr(request_user, 'doctor_profile') and not patient_user:
+            raise serializers.ValidationError("patient_user is required for doctor prescriptions")
         
         return data
     
     def create(self, validated_data):
-        patient_user = self.context['request'].user
-        doctor_user = self.context.get('doctor_user', None)
+        request_user = self.context['request'].user
+        patient_user = validated_data.pop('patient_user', None)
+        doctor_user = request_user if hasattr(request_user, 'doctor_profile') else None
+
+        # Backward compatibility: if patient creates for self, keep old behavior.
+        if patient_user is None:
+            patient_user = request_user
         
         medicine = validated_data['medicine']
         quantity = validated_data['quantity']

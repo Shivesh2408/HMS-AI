@@ -151,58 +151,34 @@ function Chat() {
   };
 
   return (
-    <div className="w-full h-full flex flex-col bg-gradient-to-b from-black to-gray-950 relative overflow-hidden">
-      {/* Background Effects */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-        <motion.div
-          animate={{
-            x: [0, 200, -100, 0],
-            y: [0, -150, 100, 0],
-            scale: [1, 1.3, 0.9, 1],
-          }}
-          transition={{ duration: 20, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute top-0 left-0 w-[500px] h-[500px] bg-gradient-to-br from-cyan-600 via-blue-600 to-transparent rounded-full blur-3xl opacity-15"
-        ></motion.div>
-
-        <motion.div
-          animate={{
-            x: [0, -200, 100, 0],
-            y: [0, 150, -100, 0],
-            scale: [1, 0.9, 1.2, 1],
-          }}
-          transition={{ duration: 25, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-gradient-to-br from-purple-600 via-pink-600 to-transparent rounded-full blur-3xl opacity-15"
-        ></motion.div>
-      </div>
-
+    <div className="w-full h-full flex flex-col bg-gray-800/50 relative overflow-hidden">
       {/* Chat Header */}
       <motion.div
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ duration: 0.5, ease: "easeOut" }}
-        className="relative z-10 bg-gradient-to-r from-black/80 via-gray-950/50 to-black/80 backdrop-blur-xl border-b border-cyan-500/10 px-6 py-4 transition-all duration-300 ease-in-out"
+        className="relative z-10 bg-gray-900/60 border-b border-cyan-500/10 px-6 py-4 transition-all duration-300 shadow-lg backdrop-blur-xl"
       >
         <div className="flex items-center justify-between">
           <div>
-            <h2 className="text-2xl font-black bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent">
+            <h2 className="text-2xl font-black text-white">
               AI Health Assistant
             </h2>
-            <p className="text-xs text-gray-500 mt-1">Always here to help</p>
+            <p className="text-xs text-cyan-400 mt-1">Always here to help</p>
           </div>
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
-            className="w-8 h-8 rounded-full bg-gradient-to-br from-cyan-500 to-blue-600"
+            className="w-8 h-8 rounded-full bg-cyan-500"
             style={{
-              boxShadow:
-                "0 0 20px rgba(34, 211, 238, 0.4), inset 0 0 10px rgba(34, 211, 238, 0.2)",
+              boxShadow: "0 0 10px rgba(37, 99, 235, 0.3)",
             }}
           />
         </div>
       </motion.div>
 
       {/* Messages Container */}
-      <div className="relative z-10 flex-1 overflow-y-auto p-6 space-y-6 bg-gradient-to-b from-black/50 to-gray-950/50 scroll-smooth">
+      <div className="relative z-10 flex-1 overflow-y-auto p-6 space-y-6 bg-gray-800/50 scroll-smooth">
         <motion.div
           variants={containerVariants}
           initial="hidden"
@@ -230,17 +206,9 @@ function Chat() {
                   whileTap={{ scale: 0.98 }}
                   className={`max-w-xs lg:max-w-md px-6 py-4 rounded-3xl transition-all duration-300 ease-in-out cursor-pointer ${
                     message.sender === "user"
-                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-br-none shadow-lg"
-                      : "bg-gradient-to-r from-purple-900/40 to-pink-900/40 text-gray-100 border border-purple-500/30 rounded-bl-none hover:border-purple-500/50"
+                      ? "bg-cyan-600 text-white rounded-br-none shadow-lg"
+                      : "bg-gray-800/50 text-gray-100 border border-cyan-500/10 rounded-bl-none hover:border-cyan-500/40"
                   }`}
-                  style={
-                    message.sender === "user"
-                      ? {
-                          boxShadow:
-                            "0 0 20px rgba(34, 211, 238, 0.4), inset 0 0 10px rgba(34, 211, 238, 0.2)",
-                        }
-                      : {}
-                  }
                 >
                   <motion.p
                     initial={{ opacity: 0 }}
@@ -278,7 +246,7 @@ function Chat() {
                     scale: 1.05,
                     transition: { duration: 0.2 },
                   }}
-                  className="bg-gradient-to-r from-purple-900/40 to-pink-900/40 border border-purple-500/30 hover:border-purple-500/50 text-gray-100 px-6 py-4 rounded-3xl rounded-bl-none transition-all duration-300 ease-in-out"
+                  className="bg-gray-900/60 border border-cyan-500/10 hover:border-[#2563EB]/40 text-white px-6 py-4 rounded-3xl rounded-bl-none transition-all duration-300"
                 >
                   <div className="flex space-x-3 items-center">
                     <motion.div
@@ -286,21 +254,21 @@ function Chat() {
                       variants={dotVariants}
                       initial="hidden"
                       animate="visible"
-                      className="w-3 h-3 rounded-full bg-cyan-400"
+                      className="w-3 h-3 rounded-full bg-blue-400"
                     ></motion.div>
                     <motion.div
                       custom={1}
                       variants={dotVariants}
                       initial="hidden"
                       animate="visible"
-                      className="w-3 h-3 rounded-full bg-blue-400"
+                      className="w-3 h-3 rounded-full bg-blue-500"
                     ></motion.div>
                     <motion.div
                       custom={2}
                       variants={dotVariants}
                       initial="hidden"
                       animate="visible"
-                      className="w-3 h-3 rounded-full bg-purple-400"
+                      className="w-3 h-3 rounded-full bg-blue-600"
                     ></motion.div>
                   </div>
                 </motion.div>
@@ -317,7 +285,7 @@ function Chat() {
         initial={{ y: 100, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ duration: 0.7, ease: "easeOut", type: "spring", stiffness: 100 }}
-        className="relative z-10 bg-gradient-to-t from-black via-gray-950/80 to-transparent backdrop-blur-xl border-t border-cyan-500/10 px-6 py-6 transition-all duration-300 ease-in-out"
+        className="relative z-10 bg-gray-900/60 border-t border-cyan-500/10 px-6 py-6 transition-all duration-300 shadow-lg backdrop-blur-xl"
       >
         <motion.div
           className="max-w-4xl mx-auto flex gap-4"
@@ -331,7 +299,7 @@ function Chat() {
             transition={{ duration: 0.4, ease: "easeOut" }}
             whileFocus={{
               scale: 1.02,
-              boxShadow: "0 0 30px rgba(34, 211, 238, 0.4)",
+              boxShadow: "0 0 10px rgba(34, 211, 238, 0.3)",
               transition: { duration: 0.2 },
             }}
             type="text"
@@ -339,7 +307,7 @@ function Chat() {
             onChange={(e) => setInput(e.target.value)}
             onKeyPress={handleKeyPress}
             placeholder="Describe your symptoms..."
-            className="flex-1 bg-gray-900/60 border border-cyan-500/20 focus:border-cyan-500/50 text-white placeholder-gray-500 px-6 py-3 rounded-full focus:outline-none transition-all duration-300 ease-in-out focus:shadow-lg focus:shadow-cyan-500/30 font-medium"
+            className="flex-1 bg-gray-800/50 border border-cyan-500/20 focus:border-cyan-500 text-white placeholder-gray-500 px-6 py-3 rounded-full focus:outline-none transition-all duration-300 focus:ring-2 focus:ring-cyan-500/30 font-medium"
             disabled={loading}
           />
 
@@ -349,16 +317,15 @@ function Chat() {
             transition={{ duration: 0.4, ease: "easeOut", delay: 0.1 }}
             whileHover={{
               scale: 1.08,
-              boxShadow: "0 0 30px rgba(34, 211, 238, 0.5)",
               transition: { duration: 0.2 },
             }}
             whileTap={{ scale: 0.92 }}
             onClick={handleSendMessage}
             disabled={loading || !input.trim()}
-            className={`px-8 py-3 rounded-full font-bold transition-all duration-300 ease-in-out flex items-center justify-center min-w-[100px] ${
+            className={`px-8 py-3 rounded-full font-bold transition-all duration-300 flex items-center justify-center min-w-[100px] ${
               loading || !input.trim()
-                ? "bg-gray-700 text-gray-400 cursor-not-allowed"
-                : "bg-gradient-to-r from-cyan-600 to-blue-600 text-white"
+                ? "bg-gray-700/50 text-gray-500 cursor-not-allowed"
+                : "bg-cyan-600 text-white hover:bg-cyan-700"
             }`}
           >
             {loading ? (

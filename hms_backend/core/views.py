@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-import google.generativeai as genai
+import google.genai as genai
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -60,12 +60,6 @@ load_dotenv(BASE_DIR / ".env")
 API_KEY = os.getenv("GEMINI_API_KEY")
 
 
-if API_KEY:
-    genai.configure(api_key=API_KEY)
-else:
-    API_KEY = None
-
-
 class PatientViewSet(viewsets.ModelViewSet):
     queryset = Patient.objects.all()
     serializer_class = PatientSerializer
@@ -122,16 +116,31 @@ class ChatbotView(APIView):
         message_lower = user_message.lower()
         
         fallback_responses = {
-            'headache': "You may be stressed or dehydrated. Stay hydrated and consult doctor if needed.",
-            'vomiting': "Possible infection. Stay hydrated and consult doctor.",
-            'chest pain': "Consult cardiologist immediately.",
+            'headache': "Possible causes: stress, dehydration, lack of sleep, or tension. \nImmediate steps: Rest in a quiet dark room, drink water, apply a cold compress. \nConsult: General Physician or Neurologist. \nPrecautions: Maintain hydration, manage stress, get adequate sleep.",
+            'vomiting': "Possible causes: gastroenteritis, food poisoning, or motion sickness. \nImmediate steps: Stay hydrated with electrolyte drinks, rest, avoid solid foods. \nConsult: General Physician or Gastroenterologist. \nPrecautions: Maintain hygiene, avoid contaminated food.",
+            'chest pain': "⚠️ EMERGENCY: Chest pain can be serious! \nImmediate steps: SEEK EMERGENCY MEDICAL HELP (Call 911/Emergency). If available take aspirin (only if not allergic). \nConsult: Cardiologist or Emergency Department IMMEDIATELY. \nDO NOT IGNORE THIS SYMPTOM.",
+            'fever': "Possible causes: infection (viral or bacterial), flu, or inflammation. \nImmediate steps: Rest, drink fluids, use fever-reducing medication (paracetamol/ibuprofen), keep cool. \nConsult: General Physician. \nPrecautions: Monitor temperature, avoid spreading infection.",
+            'cough': "Possible causes: common cold, bronchitis, allergies, or asthma. \nImmediate steps: Stay hydrated, use cough lozenges, use humidifier, rest. \nConsult: General Physician or Pulmonologist if persistent. \nPrecautions: Cover mouth, maintain hygiene.",
+            'cold': "Possible causes: viral infection. \nImmediate steps: Rest, drink warm fluids, use saline nasal drops. \nConsult: General Physician if symptoms persist. \nPrecautions: Maintain hygiene, get adequate rest.",
+            'diarrhea': "Possible causes: food poisoning, infection, or dietary issue. \nImmediate steps: Stay hydrated with ORS solution, rest, avoid dairy and oily foods. \nConsult: General Physician if persistent. \nPrecautions: Maintain food hygiene.",
+            'abdominal pain': "Possible causes: indigestion, cramps, infection, or appendicitis. \nImmediate steps: Rest, apply warm compress, avoid heavy foods. \nConsult: General Physician or Gastroenterologist. \nPrecautions: Monitor symptoms, avoid contaminated food.",
+            'fatigue': "Possible causes: lack of sleep, stress, anemia, or thyroid issues. \nImmediate steps: Get quality sleep, reduce stress, maintain lifestyle. \nConsult: General Physician. \nPrecautions: Ensure proper diet and exercise.",
+            'back pain': "Possible causes: muscle strain, poor posture, or spine issues. \nImmediate steps: Rest, apply heat/cold therapy, gentle stretching. \nConsult: Orthopedist or Physiotherapist. \nPrecautions: Maintain good posture, avoid heavy lifting.",
+            'typhoid': "⚠️ WARNING: Typhoid is a serious infection! \nPossible causes: contaminated food or water. \nSymptoms: High fever (104-106°F), body aches, weakness, abdominal pain, rash. \nImmediate steps: Seek medical attention, maintain adequate hydration. \nConsult: General Physician or Infectious Disease Specialist IMMEDIATELY. \nPrecautions: Get vaccinated, practice food/water hygiene, avoid contaminated sources.",
+            'malaria': "⚠️ WARNING: Malaria requires urgent attention! \nPossible causes: mosquito bite carrying malaria parasite. \nSymptoms: Fever (may spike to 104°F+), chills, sweating, body aches, fatigue. \nImmediate steps: Seek immediate medical attention, take antimalarial medication as prescribed. \nConsult: General Physician or Infectious Disease Specialist URGENTLY. \nPrecautions: Use mosquito nets, insect repellent, antimalarial prophylaxis if in endemic area.",
+            'flu': "Possible causes: influenza virus infection. \nSymptoms: Fever, cough, body aches, fatigue, sore throat. \nImmediate steps: Rest, stay hydrated, use antiviral medication if early, fever reducers. \nConsult: General Physician if symptoms worsen. \nPrecautions: Get flu vaccine annually, maintain hygiene, avoid close contact.",
+            'allergy': "Possible causes: allergic reaction to food, pollen, dust, or chemicals. \nSymptoms: Itching, rashes, sneezing, watery eyes, swelling. \nImmediate steps: Avoid allergen, take antihistamine, use topical cream if rash. \nConsult: General Physician or Allergist. \nPrecautions: Identify allergens, maintain hygiene, use air filters.",
+            'sore throat': "Possible causes: viral or bacterial infection, allergies. \nImmediate steps: Gargle with salt water, drink warm liquids, rest, use throat lozenges. \nConsult: General Physician if persistent or severe. \nPrecautions: Maintain oral hygiene, avoid irritants.",
+            'acne': "Possible causes: bacterial infection, hormonal changes, poor hygiene. \nImmediate steps: Wash face twice daily, use salicylic acid or benzoyl peroxide, avoid touching face. \nConsult: Dermatologist for severe cases. \nPrecautions: Maintain skin hygiene, use non-comedogenic products, manage stress.",
+            'anxiety': "Possible causes: stress, worry, panic disorder. \nSymptoms: Restlessness, rapid heartbeat, excessive worry, difficulty concentrating. \nImmediate steps: Practice deep breathing, meditation, physical exercise, adequate sleep. \nConsult: Psychiatrist or Psychologist. \nPrecautions: Manage stress, maintain healthy lifestyle, seek support.",
+            'migraine': "Possible causes: genetic, stress, hormonal, dietary triggers. \nSymptoms: Severe one-sided headache, nausea, light sensitivity. \nImmediate steps: Rest in dark quiet room, apply cold/warm compress, take pain reliever. \nConsult: Neurologist. \nPrecautions: Identify triggers, maintain sleep schedule, manage stress.",
         }
         
         for keyword, response in fallback_responses.items():
             if keyword in message_lower:
                 return response
         
-        return "Please consult a doctor for proper diagnosis."
+        return "I can help with general health information. However, for an accurate diagnosis, please consult with a doctor. Based on your concern, a General Physician would be a good starting point."
     
     def post(self, request):
         try:
@@ -145,9 +154,13 @@ class ChatbotView(APIView):
             ai_reply = None
             
             # Try Gemini API
+            print(f"[CHATBOT] API_KEY present: {bool(API_KEY)}")
+            print(f"[CHATBOT] Message: {user_message}")
+            
             if API_KEY:
                 try:
-                    model = genai.GenerativeModel("gemini-2.5-flash")
+                    print("[CHATBOT] Attempting Gemini API call...")
+                    client = genai.Client(api_key=API_KEY)
                     full_prompt = f"""You are an AI medical assistant.
 
 User symptoms or concern: {user_message}
@@ -160,16 +173,23 @@ Please respond with:
 
 Keep your answer short and clear. 
 IMPORTANT: Do NOT give a final diagnosis. Always remind the user to consult a doctor if symptoms are serious."""
-                    response = model.generate_content(full_prompt)
+                    response = client.models.generate_content(
+                        model="gemini-2.0-flash",
+                        contents=full_prompt
+                    )
                     ai_reply = response.text if response else None
+                    print(f"[CHATBOT] ✓ Gemini API success: {ai_reply[:50] if ai_reply else 'None'}")
                 except Exception as e:
-                    print(f"GEMINI ERROR: {type(e).__name__}: {str(e)}")
+                    print(f"[CHATBOT] ✗ GEMINI ERROR: {type(e).__name__}: {str(e)}")
                     import traceback
                     traceback.print_exc()
                     ai_reply = None
+            else:
+                print("[CHATBOT] No API key configured")
             
             # Use fallback if Gemini fails or not configured
             if not ai_reply:
+                print("[CHATBOT] Using fallback response")
                 ai_reply = self.get_fallback_response(user_message)
             
             # Save to database
@@ -576,6 +596,26 @@ class MyBillsView(APIView):
 
 
 class PrescriptionView(APIView):
+    def get(self, request):
+        try:
+            if not request.user.is_authenticated:
+                return Response({
+                    'error': 'Authentication required'
+                }, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Get prescriptions for the current user
+            prescriptions = Prescription.objects.filter(
+                patient_user=request.user
+            ).select_related('medicine').order_by('-date')
+            
+            serializer = PrescriptionSerializer(prescriptions, many=True)
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        except Exception as e:
+            print("GET PRESCRIPTIONS ERROR:", str(e))
+            return Response({
+                'error': 'Failed to retrieve prescriptions'
+            }, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+    
     def post(self, request):
         try:
             if not request.user.is_authenticated:

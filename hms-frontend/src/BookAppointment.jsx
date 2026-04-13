@@ -149,20 +149,14 @@ const BookAppointment = ({ onBookSuccess }) => {
     >
       <motion.div
         variants={cardVariants}
-        className="relative bg-gradient-to-br from-gray-900/60 to-gray-950/60 backdrop-blur-xl border border-cyan-500/10 hover:border-cyan-500/30 rounded-2xl shadow-2xl p-8 transition-all duration-300 ease-in-out"
-        style={{
-          boxShadow: '0 0 50px rgba(34, 211, 238, 0.05), inset 0 1px 0 rgba(34, 211, 238, 0.1)',
-        }}
+        className="bg-gray-900/60 border border-cyan-500/10 rounded-2xl p-8 transition-all duration-300 backdrop-blur-xl"
       >
-        <div className="absolute -inset-1 bg-gradient-to-r from-cyan-600/20 via-blue-600/20 to-purple-600/20 rounded-2xl opacity-0 hover:opacity-75 blur-2xl transition-all duration-500 ease-in-out pointer-events-none"></div>
+        <h1 className="text-4xl font-black text-white mb-2">
+          Book Appointment
+        </h1>
+        <div className="h-1 w-32 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full mb-8"></div>
 
-        <div className="relative">
-          <h1 className="text-4xl font-black bg-gradient-to-r from-cyan-400 to-blue-500 bg-clip-text text-transparent mb-2">
-            Book Appointment
-          </h1>
-          <div className="h-1 w-32 bg-gradient-to-r from-cyan-400 to-blue-500 rounded-full mb-8"></div>
-
-          <form onSubmit={handleSubmit} className="space-y-6">
+        <form onSubmit={handleSubmit} className="space-y-6">
             {/* Doctor Selection */}
             <motion.div
               initial={{ opacity: 0, x: -20 }}
@@ -175,7 +169,7 @@ const BookAppointment = ({ onBookSuccess }) => {
               <select
                 value={selectedDoctor}
                 onChange={handleDoctorChange}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-gray-200 focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 ease-in-out"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
               >
                 <option value="">-- Choose a doctor --</option>
                 {doctors.map((doc) => (
@@ -201,7 +195,7 @@ const BookAppointment = ({ onBookSuccess }) => {
                 onChange={handleDateChange}
                 disabled={!selectedDoctor}
                 min={new Date().toISOString().split('T')[0]}
-                className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-gray-200 focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed"
               />
             </motion.div>
 
@@ -236,8 +230,8 @@ const BookAppointment = ({ onBookSuccess }) => {
                         whileTap={{ scale: 0.95 }}
                         className={`px-3 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
                           selectedTime === slot
-                            ? 'bg-cyan-500 text-black'
-                            : 'bg-gray-700 text-gray-200 hover:bg-gray-600'
+                            ? 'bg-cyan-600 text-white'
+                            : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-cyan-500/20'
                         }`}
                       >
                         {slot}
@@ -264,7 +258,7 @@ const BookAppointment = ({ onBookSuccess }) => {
                 onChange={(e) => setNotes(e.target.value)}
                 placeholder="Describe your symptoms or reason for visit..."
                 rows="4"
-                className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-gray-200 placeholder-gray-500 focus:outline-none focus:border-cyan-400/50 focus:ring-2 focus:ring-cyan-400/20 transition-all duration-300 ease-in-out"
+                className="w-full px-4 py-3 bg-gray-800/50 border border-cyan-500/20 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500/20 transition-all duration-300"
               />
             </motion.div>
 
@@ -273,7 +267,7 @@ const BookAppointment = ({ onBookSuccess }) => {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-4 bg-green-500/20 border border-green-500/50 rounded-lg text-green-400 font-semibold"
+                className="p-4 bg-green-500/20 border border-green-500/30 rounded-lg text-green-400 font-semibold"
               >
                 ✓ {message}
               </motion.div>
@@ -283,7 +277,7 @@ const BookAppointment = ({ onBookSuccess }) => {
               <motion.div
                 initial={{ opacity: 0, y: -10 }}
                 animate={{ opacity: 1, y: 0 }}
-                className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 font-semibold"
+                className="p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 font-semibold"
               >
                 ✗ {error}
               </motion.div>
@@ -295,7 +289,7 @@ const BookAppointment = ({ onBookSuccess }) => {
               disabled={loading || !selectedTime}
               whileHover={{ scale: 1.02 }}
               whileTap={{ scale: 0.98 }}
-              className="w-full px-8 py-4 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-black font-black rounded-lg transition-all duration-300 ease-in-out disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
+              className="w-full px-8 py-4 bg-cyan-600 hover:bg-cyan-700 text-white font-black rounded-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed uppercase tracking-widest"
             >
               {loading ? (
                 <motion.span
@@ -310,7 +304,6 @@ const BookAppointment = ({ onBookSuccess }) => {
               )}
             </motion.button>
           </form>
-        </div>
       </motion.div>
     </motion.div>
   );

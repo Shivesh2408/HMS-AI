@@ -42,17 +42,17 @@ const DoctorsList = () => {
 
   const getSpecializationColor = (specialization) => {
     const colors = {
-      'Cardiology': 'from-red-500 to-pink-600',
-      'Dermatology': 'from-orange-500 to-yellow-600',
-      'Neurology': 'from-purple-500 to-blue-600',
-      'Pediatrics': 'from-green-500 to-emerald-600',
-      'Orthopedics': 'from-yellow-500 to-orange-600',
-      'Gynecology': 'from-pink-500 to-rose-600',
-      'Ophthalmology': 'from-blue-500 to-cyan-600',
-      'Pulmonology': 'from-teal-500 to-cyan-600',
-      'General': 'from-gray-500 to-slate-600',
+      'Cardiology': 'from-red-50 to-red-100',
+      'Dermatology': 'from-orange-50 to-orange-100',
+      'Neurology': 'from-purple-50 to-purple-100',
+      'Pediatrics': 'from-green-50 to-green-100',
+      'Orthopedics': 'from-yellow-50 to-yellow-100',
+      'Gynecology': 'from-pink-50 to-pink-100',
+      'Ophthalmology': 'from-blue-50 to-blue-100',
+      'Pulmonology': 'from-teal-50 to-teal-100',
+      'General': 'from-slate-50 to-slate-100',
     };
-    return colors[specialization] || 'from-cyan-500 to-blue-600';
+    return colors[specialization] || 'from-blue-50 to-blue-100';
   };
 
   return (
@@ -70,10 +70,10 @@ const DoctorsList = () => {
         custom={0}
         className="relative mb-8"
       >
-        <h1 className="text-4xl font-black bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent mb-2">
+        <h1 className="text-4xl font-black text-cyan-400 mb-2">
           Available Doctors
         </h1>
-        <div className="h-1 w-48 bg-gradient-to-r from-purple-400 to-pink-500 rounded-full mb-8"></div>
+        <div className="h-1 w-48 bg-[#2563EB] rounded-full mb-8"></div>
       </motion.div>
 
       {/* Error Message */}
@@ -81,7 +81,7 @@ const DoctorsList = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-red-500/20 border border-red-500/50 rounded-lg text-red-400 font-semibold mb-6"
+          className="p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 font-semibold mb-6"
         >
           ✗ {error}
         </motion.div>
@@ -97,23 +97,17 @@ const DoctorsList = () => {
           <motion.div
             animate={{ rotate: 360 }}
             transition={{ duration: 2, repeat: Infinity, ease: 'linear' }}
-            className="w-12 h-12 rounded-full border-4 border-purple-500/20 border-t-purple-500"
-            style={{
-              boxShadow: '0 0 20px rgba(168, 85, 247, 0.6)',
-            }}
+            className="w-12 h-12 rounded-full border-4 border-cyan-500/10 border-t-[#2563EB]"
           />
         </motion.div>
       ) : doctors.length === 0 ? (
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="relative bg-gradient-to-br from-gray-900/60 to-gray-950/60 backdrop-blur-xl border border-purple-500/10 rounded-2xl shadow-2xl p-12 text-center"
-          style={{
-            boxShadow: '0 0 50px rgba(168, 85, 247, 0.05), inset 0 1px 0 rgba(168, 85, 247, 0.1)',
-          }}
+          className="bg-gray-900/60 border border-cyan-500/10 rounded-12 shadow-lg p-12 text-center"
         >
           <div className="text-6xl mb-4">👨‍⚕️</div>
-          <p className="text-gray-400 text-lg">No doctors available.</p>
+          <p className="text-white text-lg">No doctors available.</p>
         </motion.div>
       ) : (
         <motion.div
@@ -135,19 +129,11 @@ const DoctorsList = () => {
               variants={cardVariants}
               className="group relative cursor-pointer"
             >
-              {/* Glow background */}
-              <div className="absolute -inset-1 bg-gradient-to-r from-purple-600/20 via-pink-600/20 to-blue-600/20 rounded-2xl opacity-0 group-hover:opacity-100 blur-2xl transition-all duration-500 ease-in-out"></div>
-
               {/* Card */}
               <motion.div
                 whileHover={{ y: -5, transition: { duration: 0.3 } }}
-                className="relative bg-gradient-to-br from-gray-900/60 to-gray-950/60 backdrop-blur-xl border border-purple-500/10 group-hover:border-purple-500/30 rounded-2xl p-6 transition-all duration-300 ease-in-out overflow-hidden"
+                className="relative bg-gray-900/60 border border-cyan-500/10 group-hover:border-[#2563EB] rounded-12 p-6 transition-all duration-300 shadow-lg hover:shadow-lg-lg overflow-hidden"
               >
-                {/* Grid pattern */}
-                <div className="absolute inset-0 opacity-5 group-hover:opacity-10 transition-opacity duration-300 ease-in-out">
-                  <div className="absolute inset-0 bg-[radial-gradient(circle_at_1px_1px,white_1px,transparent_1px)] bg-[length:40px_40px]"></div>
-                </div>
-
                 <div className="relative">
                   {/* Header */}
                   <div className="flex items-center justify-between mb-4">
@@ -162,12 +148,12 @@ const DoctorsList = () => {
                     >
                       👨‍⚕️
                     </motion.div>
-                    <span className="text-2xl">#{doctor.id}</span>
+                    <span className="text-2xl text-gray-400">#{doctor.id}</span>
                   </div>
 
                   {/* Doctor Name */}
                   <h3 className="text-xl font-black mb-2">
-                    <span className="bg-gradient-to-r from-purple-400 to-pink-500 bg-clip-text text-transparent">
+                    <span className="text-cyan-400">
                       Dr. {doctor.first_name || doctor.last_name || doctor.username}
                     </span>
                   </h3>
@@ -177,7 +163,7 @@ const DoctorsList = () => {
                     <span
                       className={`inline-block px-4 py-2 rounded-lg text-sm font-bold bg-gradient-to-r ${getSpecializationColor(
                         doctor.specialization
-                      )} text-white`}
+                      )} text-gray-700`}
                     >
                       {doctor.specialization || 'General'}
                     </span>
@@ -185,7 +171,7 @@ const DoctorsList = () => {
 
                   {/* Username */}
                   <p className="text-gray-400 text-sm mb-1">
-                    <span className="text-gray-500">Username:</span> @{doctor.username}
+                    <span className="text-gray-400">Username:</span> @{doctor.username}
                   </p>
 
                   {/* Available badge */}
@@ -196,7 +182,7 @@ const DoctorsList = () => {
                       repeat: Infinity,
                       ease: 'easeInOut',
                     }}
-                    className="mt-4 flex items-center space-x-2 text-green-400"
+                    className="mt-4 flex items-center space-x-2 text-green-600"
                   >
                     <span className="w-2 h-2 rounded-full bg-green-400"></span>
                     <span className="text-xs font-semibold">Available for booking</span>
