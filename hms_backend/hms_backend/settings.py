@@ -143,8 +143,14 @@ STATIC_URL = '/static/'
 
 # CORS Settings
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 
-    'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:8000').split(',')
+    'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:8000,https://hms-ai-seven.vercel.app').split(',')
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS]
+
+# Allow subdomains and all pages from Vercel
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://.*\.vercel\.app$",
+    r"^https://hms-ai.*\.vercel\.app$",
+]
 
 # Allow all if DEBUG is True (development)
 if DEBUG:
