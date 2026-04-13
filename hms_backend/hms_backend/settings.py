@@ -141,7 +141,10 @@ STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
 STATIC_URL = '/static/'
 
-# CORS Settings
+# CORS Settings - Allow all origins for API access
+CORS_ALLOW_ALL_ORIGINS = True
+
+# Still define specific origins as fallback
 CORS_ALLOWED_ORIGINS = os.getenv('CORS_ALLOWED_ORIGINS', 
     'http://localhost:3000,http://localhost:3001,http://localhost:3002,http://127.0.0.1:8000,https://hms-ai-seven.vercel.app').split(',')
 CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS]
@@ -150,14 +153,11 @@ CORS_ALLOWED_ORIGINS = [origin.strip() for origin in CORS_ALLOWED_ORIGINS]
 CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://.*\.vercel\.app$",
     r"^https://hms-ai.*\.vercel\.app$",
+    r"^.*localhost.*$",
 ]
 
 # Allow credentials in CORS requests (for cookies and auth headers)
 CORS_ALLOW_CREDENTIALS = True
-
-# Allow all if DEBUG is True (development)
-if DEBUG:
-    CORS_ALLOW_ALL_ORIGINS = True
 
 # REST Framework Settings
 REST_FRAMEWORK = {
