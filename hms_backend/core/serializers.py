@@ -181,7 +181,7 @@ class BookAppointmentSerializer(serializers.ModelSerializer):
                 doctor_user=doctor.user,
                 date=date,
                 time=time,
-                status__in=['scheduled', 'completed']
+                status__in=['pending', 'accepted', 'completed']
             ).exists()
             
             if existing:

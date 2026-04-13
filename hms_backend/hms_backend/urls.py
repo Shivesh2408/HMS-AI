@@ -45,6 +45,7 @@ from core.views import (
     DoctorAppointmentsView,
     UpdateAppointmentStatusView,
     AdminStatsView,
+    MedicalHistoryView,
 )
 from core.diag import DiagnosticsView
 
@@ -79,6 +80,7 @@ urlpatterns = [
     path('api/doctor/profile/', DoctorProfileView.as_view()),
     path('api/doctor/appointments/', DoctorAppointmentsView.as_view()),
     path('api/doctor/update-appointment-status/', UpdateAppointmentStatusView.as_view()),
+    path('api/medical-history/', MedicalHistoryView.as_view()),
     path('api/admin/stats/', AdminStatsView.as_view()),
     path('api/', include(router.urls)),
 ]

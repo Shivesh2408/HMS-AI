@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 
 function DoctorPrescriptions() {
@@ -17,13 +17,7 @@ function DoctorPrescriptions() {
     notes: '',
   });
 
-  /* eslint-disable-next-line react-hooks/exhaustive-deps */
-  useEffect(() => {
-    fetchAppointments();
-    fetchMedicines();
-  }, []);
-
-  const fetchAppointments = async () => {
+  const fetchAppointments = useCallback(async () => {
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/doctor/appointments/`,
@@ -40,9 +34,9 @@ function DoctorPrescriptions() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [token]);
 
-  const fetchMedicines = async () => {
+  const fetchMedicines = useCallback(async () => {
     try {
       const response = await fetch(
         `${process.env.REACT_APP_API_URL}/api/medicines/`,
@@ -55,7 +49,12 @@ function DoctorPrescriptions() {
     } catch (error) {
       console.error('Error fetching medicines:', error);
     }
-  };
+  }, [token]);
+
+  useEffect(() => {
+    fetchAppointments();
+    fetchMedicines();
+  }, [fetchAppointments, fetchMedicines]);
 
   const handleAddPrescription = async (e) => {
     e.preventDefault();
