@@ -152,6 +152,9 @@ CORS_ALLOWED_ORIGIN_REGEXES = [
     r"^https://hms-ai.*\.vercel\.app$",
 ]
 
+# Allow credentials in CORS requests (for cookies and auth headers)
+CORS_ALLOW_CREDENTIALS = True
+
 # Allow all if DEBUG is True (development)
 if DEBUG:
     CORS_ALLOW_ALL_ORIGINS = True
