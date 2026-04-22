@@ -1,19 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { clearAllAuthData, verifyAuthCleared } from './authUtils';
+import { loginUser } from './firebase.service';
+import { auth } from './firebase.config';
 
 const Login = ({ onLoginSuccess }) => {
-  const [username, setUsername] = useState('');
+  const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
 
-  // CRITICAL: Clear all previous auth data on login page load
+  // Firebase automatically handles auth state persistence
   useEffect(() => {
-    console.log('[LOGIN_INIT] Page loaded');
-    clearAllAuthData();
-    verifyAuthCleared();
-    console.log('[LOGIN_INIT] Login form ready for authentication');
+    console.log('[LOGIN_INIT] Page loaded - Firebase auth ready');
   }, []);
 
   const handleSubmit = async (e) => {
@@ -21,31 +19,35 @@ const Login = ({ onLoginSuccess }) => {
     setError('');
     setLoading(true);
 
-    // Clear any stale auth data before fresh login
-    console.log('[LOGIN_SUBMIT] User clicked login');
-    clearAllAuthData();
+    console.log('[LOGIN_SUBMIT] User clicked login with email:', email);
 
     try {
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/login/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ username, password }),
-      });
+      const result = await loginUser(email, password);
 
-      const data = await response.json();
+      if (result.success) {
+        const role = result.role?.toLowerCase().trim() || 'patient';
 
-      if (response.ok && data.token && data.role) {
-        const role = data.role.toLowerCase().trim();
+        console.log('[LOGIN] ✓ Success. User:', result.email, 'Role:', role);
 
-        localStorage.setItem('authToken', data.token);
-        localStorage.setItem('user', JSON.stringify(data.user));
+        // Store user data in localStorage for quick access
+        // Store complete user object
+        localStorage.setItem('user', JSON.stringify({
+          uid: result.uid,
+          email: result.email,
+          displayName: result.displayName,
+          role: role
+        }));
+        
+        // Store auth token (Firebase uses ID token)
+        const idToken = await auth.currentUser.getIdToken();
+        localStorage.setItem('authToken', idToken);
+        
         localStorage.setItem('userRole', role);
+        localStorage.setItem('userId', result.uid);
+        
+        console.log('[LOGIN] ✓ Stored user session in localStorage');
 
-        console.log('[LOGIN] ✓ Success. User:', data.user.username, 'Role:', role);
-
-        // CRITICAL: Use window.location for hard redirect (not navigate)
+        // Redirect based on role
         if (role === 'doctor') {
           console.log('[LOGIN] Redirecting to /doctor-dashboard');
           window.location = '/doctor-dashboard';
@@ -56,17 +58,19 @@ const Login = ({ onLoginSuccess }) => {
           console.log('[LOGIN] Redirecting to /admin-dashboard');
           window.location = '/admin-dashboard';
         } else {
-          setError('Unknown role from server: ' + role);
+          window.location = '/patient-dashboard'; // Default redirect
         }
 
         if (onLoginSuccess) onLoginSuccess();
       } else {
-        setError(data.message || data.error || 'Login failed. Please try again.');
-        console.log('[LOGIN] ✗ Failed:', data);
+        const errorMsg = result.error || 'Login failed. Please try again.';
+        setError(errorMsg);
+        console.error('[LOGIN] ✗ Failed:', { code: result.code, error: errorMsg, email });
       }
     } catch (err) {
-      setError('Error connecting to server. Please try again.');
-      console.error('Login error:', err);
+      const errorMsg = 'Error during login. Please try again.';
+      setError(errorMsg);
+      console.error('[LOGIN_EXCEPTION] Unexpected error:', err);
     } finally {
       setLoading(false);
     }
@@ -143,18 +147,18 @@ const Login = ({ onLoginSuccess }) => {
               Login
             </h2>
 
-            {/* Username Input */}
+            {/* Email Input */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.4 }}
             >
-              <label className="block text-xs sm:text-sm font-semibold text-cyan-400 mb-2">Username</label>
+              <label className="block text-xs sm:text-sm font-semibold text-cyan-400 mb-2">Email</label>
               <motion.input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Enter username"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter email"
                 variants={inputVariants}
                 whileFocus="focus"
                 className="w-full bg-gray-900/50 border border-cyan-500/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-gray-100 placeholder-gray-600 focus:outline-none transition-all duration-300 text-sm"

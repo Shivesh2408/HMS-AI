@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { createDoctorSchedule, resolveDoctorIdByAuthUid } from './firebase.service';
 
 const DoctorSchedulePage = ({ onScheduleAdded }) => {
   const [date, setDate] = useState('');
@@ -9,7 +9,7 @@ const DoctorSchedulePage = ({ onScheduleAdded }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const token = localStorage.getItem('authToken');
+  const authDoctorId = localStorage.getItem('userId');
 
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -35,28 +35,36 @@ const DoctorSchedulePage = ({ onScheduleAdded }) => {
     setLoading(true);
 
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/add-schedule/`,
-        {
-          date,
-          start_time: startTime,
-          end_time: endTime,
-        },
-        {
-          headers: { 'Authorization': `Token ${token}` },
+      const doctorId = await resolveDoctorIdByAuthUid(authDoctorId);
+      if (!doctorId) {
+        setError('Doctor profile not found. Please contact admin.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('[SCHEDULE] Adding schedule:', { doctorId, date, startTime, endTime });
+
+      const result = await createDoctorSchedule(doctorId, {
+        date,
+        startTime,
+        endTime,
+      });
+
+      if (result.success) {
+        setMessage('Schedule added successfully!');
+        setDate('');
+        setStartTime('09:00');
+        setEndTime('17:00');
+
+        if (onScheduleAdded) {
+          setTimeout(() => onScheduleAdded(), 1000);
         }
-      );
-
-      setMessage('Schedule added successfully!');
-      setDate('');
-      setStartTime('09:00');
-      setEndTime('17:00');
-
-      if (onScheduleAdded) {
-        setTimeout(() => onScheduleAdded(), 1000);
+      } else {
+        setError(result.error || 'Failed to add schedule');
+        console.error('[SCHEDULE_ERROR]:', result.error);
       }
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to add schedule');
+      setError('Failed to add schedule');
       console.error('Error:', err);
     } finally {
       setLoading(false);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { getAllDoctors, getDoctorAvailableSlots, createAppointment, completeSetup } from './firebase.service';
 
 const BookAppointment = ({ onBookSuccess }) => {
   const [doctors, setDoctors] = useState([]);
@@ -13,7 +13,8 @@ const BookAppointment = ({ onBookSuccess }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const token = localStorage.getItem('authToken');
+  const [setupLoading, setSetupLoading] = useState(false);
+  const patientId = localStorage.getItem('userId');
 
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -32,8 +33,10 @@ const BookAppointment = ({ onBookSuccess }) => {
 
   const fetchDoctors = async () => {
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/doctors/`);
-      setDoctors(response.data);
+      console.log('[APPOINTMENT] Fetching doctors list...');
+      const doctorsList = await getAllDoctors();
+      setDoctors(doctorsList);
+      console.log('[APPOINTMENT] ✓ Doctors fetched:', doctorsList.length);
     } catch (err) {
       console.error('Error fetching doctors:', err);
       setError('Failed to fetch doctors');
@@ -48,16 +51,16 @@ const BookAppointment = ({ onBookSuccess }) => {
     setSelectedTime('');
 
     try {
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/available-slots/`, {
-        params: {
-          doctor_id: doctorId,
-          date: date,
-        },
-      });
-
-      setAvailableSlots(response.data.slots || []);
-      if (!response.data.slots || response.data.slots.length === 0) {
+      console.log('[APPOINTMENT] Fetching available slots for doctor:', doctorId, 'on date:', date);
+      const slots = await getDoctorAvailableSlots(doctorId, date);
+      
+      if (slots && slots.length > 0) {
+        setAvailableSlots(slots);
+        console.log('[APPOINTMENT] ✓ Slots found:', slots.length);
+      } else {
         setError('No available slots for this doctor on this date');
+        console.log('[APPOINTMENT] No slots available');
+        setAvailableSlots([]);
       }
     } catch (err) {
       console.error('Error fetching slots:', err);
@@ -97,45 +100,67 @@ const BookAppointment = ({ onBookSuccess }) => {
 
     setLoading(true);
     try {
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/book-appointment/`,
-        {
-          doctor_id: parseInt(selectedDoctor),
-          date: selectedDate,
-          time: selectedTime,
-          notes: notes,
-        },
-        {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
-
-      setMessage('Appointment booked successfully!');
-      setSelectedDoctor('');
-      setSelectedDate('');
-      setSelectedTime('');
-      setNotes('');
-      setAvailableSlots([]);
+      console.log('[APPOINTMENT] Booking appointment...');
       
-      if (onBookSuccess) {
-        setTimeout(() => {
-          onBookSuccess();
-        }, 1000);
+      const result = await createAppointment({
+        patientId,
+        doctorId: selectedDoctor,
+        date: selectedDate,
+        time: selectedTime,
+        notes: notes,
+        status: 'pending'
+      });
+
+      if (result.success) {
+        setMessage('Appointment booked successfully!');
+        setSelectedDoctor('');
+        setSelectedDate('');
+        setSelectedTime('');
+        setNotes('');
+        console.log('[APPOINTMENT] ✓ Appointment booked:', result.id);
+
+        if (onBookSuccess) {
+          setTimeout(() => onBookSuccess(), 1500);
+        }
+      } else {
+        setError(result.error || 'Failed to book appointment');
+        console.error('[APPOINTMENT_ERROR]:', result.error);
       }
     } catch (err) {
-      if (err.response?.data?.non_field_errors) {
-        setError('Slot is no longer available');
-      } else if (err.response?.data?.doctor_id) {
-        setError(err.response.data.doctor_id[0]);
-      } else {
-        setError('Failed to book appointment');
-      }
+      setError('Failed to book appointment');
       console.error('Error booking appointment:', err);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleSetupDemo = async () => {
+    setSetupLoading(true);
+    setError('');
+    setMessage('');
+    
+    try {
+      console.log('[SETUP] Starting complete setup via BookAppointment...');
+      const result = await completeSetup();
+      
+      console.log('[SETUP] Result:', result);
+      
+      if (result.success) {
+        setMessage(`✅ Setup complete! Created ${result.doctorCount} doctors and ${result.slotsCreated} appointment slots. Refreshing...`);
+        
+        // Wait a bit then refresh doctors and page
+        setTimeout(() => {
+          window.location.reload();
+        }, 2000);
+      } else {
+        setError('❌ Setup failed: ' + (result.error || 'Unknown error'));
+        console.error('[SETUP] Failed:', result);
+      }
+    } catch (err) {
+      console.error('[SETUP] Error:', err);
+      setError('❌ Setup error: ' + err.message);
+    } finally {
+      setSetupLoading(false);
     }
   };
 
@@ -151,10 +176,39 @@ const BookAppointment = ({ onBookSuccess }) => {
         variants={cardVariants}
         className="bg-gray-900/60 border border-cyan-500/10 rounded-2xl p-8 transition-all duration-300 backdrop-blur-xl"
       >
-        <h1 className="text-4xl font-black text-white mb-2">
-          Book Appointment
-        </h1>
-        <div className="h-1 w-32 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full mb-8"></div>
+        <div className="flex justify-between items-start mb-8">
+          <div>
+            <h1 className="text-4xl font-black text-white mb-2">
+              Book Appointment
+            </h1>
+            <div className="h-1 w-32 bg-gradient-to-r from-cyan-500 to-cyan-600 rounded-full"></div>
+          </div>
+          
+          {/* Setup button - Always visible */}
+          <motion.button
+            onClick={handleSetupDemo}
+            disabled={setupLoading}
+            whileHover={{ scale: 1.05 }}
+            whileTap={{ scale: 0.95 }}
+            className="px-4 py-2 bg-yellow-600 hover:bg-yellow-700 disabled:opacity-50 text-white font-bold rounded-lg transition-all text-sm"
+          >
+            {setupLoading ? '⚙️ Setting...' : '🚀 Setup Demo'}
+          </motion.button>
+        </div>
+
+        {/* Setup Demo Data Prompt - Only for first time */}
+        {doctors.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="mb-8 p-6 bg-yellow-500/20 border border-yellow-500/40 rounded-2xl"
+          >
+            <h2 className="text-xl font-bold text-yellow-400 mb-3">⚡ First Time Setup Required</h2>
+            <p className="text-yellow-100 mb-4">
+              No doctors found. Please click the Setup Demo button to load demo data (doctors, schedules, and medicines).
+            </p>
+          </motion.div>
+        )}
 
         <form onSubmit={handleSubmit} className="space-y-6">
             {/* Doctor Selection */}
@@ -223,18 +277,18 @@ const BookAppointment = ({ onBookSuccess }) => {
                   <div className="grid grid-cols-3 gap-2">
                     {availableSlots.map((slot) => (
                       <motion.button
-                        key={slot}
+                        key={slot.id || slot.startTime}
                         type="button"
-                        onClick={() => setSelectedTime(slot)}
+                        onClick={() => setSelectedTime(slot.startTime)}
                         whileHover={{ scale: 1.05 }}
                         whileTap={{ scale: 0.95 }}
                         className={`px-3 py-2 rounded-lg font-semibold transition-all duration-300 text-sm ${
-                          selectedTime === slot
+                          selectedTime === slot.startTime
                             ? 'bg-cyan-600 text-white'
                             : 'bg-gray-800/50 text-gray-300 hover:bg-gray-700/50 border border-cyan-500/20'
                         }`}
                       >
-                        {slot}
+                        {slot.startTime} - {slot.endTime}
                       </motion.button>
                     ))}
                   </div>

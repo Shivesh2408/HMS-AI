@@ -1,7 +1,7 @@
 import os
 from pathlib import Path
 from dotenv import load_dotenv
-import google.genai as genai
+import google.generativeai as genai
 from rest_framework import viewsets
 from rest_framework.views import APIView
 from rest_framework.response import Response
@@ -988,3 +988,70 @@ class AdminStatsView(APIView):
             import traceback
             traceback.print_exc()
             return Response({'error': 'Failed to fetch admin stats'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
+
+
+class MedicalHistoryView(APIView):
+    """
+    Medical History endpoint for viewing patient medical records.
+    GET: Retrieve patient's medical history
+    Only authenticated patients and doctors can access.
+    """
+    def get(self, request, patient_id=None):
+        try:
+            if not request.user.is_authenticated:
+                return Response({'error': 'Authentication required'}, status=status.HTTP_401_UNAUTHORIZED)
+            
+            # Determine patient_id
+            if patient_id is None:
+                # Get current user's medical history (patient only)
+                try:
+                    patient = Patient.objects.get(user=request.user)
+                    patient_id = patient.id
+                except Patient.DoesNotExist:
+                    return Response({'error': 'Patient profile not found'}, status=status.HTTP_404_NOT_FOUND)
+            else:
+                # Check if request user is doctor or admin accessing another patient's history
+                profile = getattr(request.user, 'profile', None)
+                is_doctor = hasattr(request.user, 'doctor_profile')
+                is_admin = profile and profile.role == 'admin'
+                
+                if not (is_doctor or is_admin):
+                    # Non-doctors can only view their own history
+                    try:
+                        patient = Patient.objects.get(user=request.user)
+                        if str(patient.id) != str(patient_id):
+                            return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+                    except Patient.DoesNotExist:
+                        return Response({'error': 'Access denied'}, status=status.HTTP_403_FORBIDDEN)
+            
+            # Get medical records for patient
+            try:
+                patient = Patient.objects.get(id=patient_id)
+            except Patient.DoesNotExist:
+                return Response({'error': 'Patient not found'}, status=status.HTTP_404_NOT_FOUND)
+            
+            # Get medical records
+            medical_records = MedicalRecord.objects.filter(patient=patient).order_by('-date')
+            serializer = MedicalRecordSerializer(medical_records, many=True)
+            
+            # Get prescriptions
+            prescriptions = Prescription.objects.filter(patient=patient).order_by('-date')
+            prescription_serializer = PrescriptionSerializer(prescriptions, many=True)
+            
+            # Get appointments
+            appointments = Appointment.objects.filter(patient=patient).order_by('-date')
+            appointment_serializer = AppointmentDetailSerializer(appointments, many=True)
+            
+            return Response({
+                'patient_id': patient_id,
+                'patient_name': patient.name,
+                'medical_records': serializer.data,
+                'prescriptions': prescription_serializer.data,
+                'appointments': appointment_serializer.data
+            }, status=status.HTTP_200_OK)
+        
+        except Exception as e:
+            print(f"MEDICAL HISTORY ERROR: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            return Response({'error': 'Failed to fetch medical history'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)

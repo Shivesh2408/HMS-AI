@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
+import { getPatientDashboardStats } from './firebase.service';
 import { useNavigate } from 'react-router-dom';
 import Chat from './Chat';
 import BookAppointment from './BookAppointment';
@@ -48,19 +48,32 @@ const PatientDashboard = () => {
 
   const fetchStats = async () => {
     try {
-      const token = localStorage.getItem('authToken');
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/patient-stats/`, {
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
-      setStats(response.data);
+      const patientId = localStorage.getItem('userId');
+      console.log('[PATIENT_DASHBOARD] Fetching stats for patient:', patientId);
+      
+      const statsData = await getPatientDashboardStats(patientId);
+      
+      if (statsData.error) {
+        console.warn('[PATIENT_DASHBOARD] Error getting stats:', statsData.error);
+        // Show default stats instead of failing
+        setStats({
+          appointments: 0,
+          doctors: 0,
+          upcoming: 0,
+        });
+      } else {
+        setStats(statsData);
+      }
       setError('');
       setLoading(false);
     } catch (err) {
-      console.error('Error fetching stats:', err);
-      setError('Failed to load dashboard data');
+      console.error('[PATIENT_DASHBOARD] Error fetching stats:', err);
+      // Don't show error if we can still use the dashboard
+      setStats({
+        appointments: 0,
+        doctors: 0,
+        upcoming: 0,
+      });
       setLoading(false);
     }
   };

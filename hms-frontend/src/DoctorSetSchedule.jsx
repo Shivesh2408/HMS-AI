@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { createDoctorSchedule, resolveDoctorIdByAuthUid } from './firebase.service';
 
 const DoctorSetSchedule = ({ onScheduleSet }) => {
   const [date, setDate] = useState('');
@@ -9,7 +9,7 @@ const DoctorSetSchedule = ({ onScheduleSet }) => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const token = localStorage.getItem('authToken');
+  const authDoctorId = localStorage.getItem('userId');
 
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -39,37 +39,38 @@ const DoctorSetSchedule = ({ onScheduleSet }) => {
 
     setLoading(true);
     try {
-      const response = await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/add-schedule/`,
-        {
-          date,
-          start_time: startTime,
-          end_time: endTime,
-        },
-        {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
+      const doctorId = await resolveDoctorIdByAuthUid(authDoctorId);
+      if (!doctorId) {
+        setError('Doctor profile not found. Please contact admin.');
+        setLoading(false);
+        return;
+      }
+
+      console.log('[SCHEDULE] Submitting schedule:', { doctorId, date, startTime, endTime });
+
+      const result = await createDoctorSchedule(doctorId, {
+        date,
+        startTime,
+        endTime,
+      });
+
+      if (result.success) {
+        setMessage('Schedule set successfully!');
+        setDate('');
+        setStartTime('09:00');
+        setEndTime('17:00');
+
+        if (onScheduleSet) {
+          setTimeout(() => {
+            onScheduleSet();
+          }, 1000);
         }
-      );
-
-      setMessage('Schedule set successfully!');
-      setDate('');
-      setStartTime('09:00');
-      setEndTime('17:00');
-
-      if (onScheduleSet) {
-        setTimeout(() => {
-          onScheduleSet();
-        }, 1000);
+      } else {
+        setError(result.error || 'Failed to set schedule');
+        console.error('[SCHEDULE_ERROR]:', result.error);
       }
     } catch (err) {
-      if (err.response?.data?.error) {
-        setError(err.response.data.error);
-      } else {
-        setError('Failed to set schedule');
-      }
+      setError('Failed to set schedule');
       console.error('Error setting schedule:', err);
     } finally {
       setLoading(false);

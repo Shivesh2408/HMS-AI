@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { getMedicines, createPharmacyOrder } from './firebase.service';
 
 const Pharmacy = () => {
   const [medicines, setMedicines] = useState([]);
@@ -11,7 +11,7 @@ const Pharmacy = () => {
   const [quantities, setQuantities] = useState({});
   const [showCart, setShowCart] = useState(false);
   const [processingOrder, setProcessingOrder] = useState(false);
-  const token = localStorage.getItem('authToken');
+  const patientId = localStorage.getItem('userId');
 
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -28,23 +28,20 @@ const Pharmacy = () => {
     const fetchMedicines = async () => {
       try {
         setLoading(true);
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/medicines/`, {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
-        setMedicines(response.data || []);
+        console.log('[PHARMACY] Fetching medicines...');
+        const medicinesList = await getMedicines();
+        setMedicines(medicinesList || []);
         setError('');
+        console.log('[PHARMACY] ✓ Loaded', medicinesList.length, 'medicines');
       } catch (err) {
-        console.error('Error fetching medicines:', err);
+        console.error('[PHARMACY] Error fetching medicines:', err);
         setError('Failed to fetch medicines');
       } finally {
         setLoading(false);
       }
     };
     fetchMedicines();
-  }, [token]);
+  }, []);
 
   const handleQuantityChange = (medicineId, value) => {
     setQuantities({
@@ -111,29 +108,40 @@ const Pharmacy = () => {
       setProcessingOrder(true);
       setError('');
 
+      if (!patientId) {
+        setError('Patient ID not found. Please login again.');
+        setProcessingOrder(false);
+        return;
+      }
+
+      if (cart.length === 0) {
+        setError('Cart is empty');
+        setProcessingOrder(false);
+        return;
+      }
+
       const items = cart.map(item => ({
-        medicine_id: item.medicine.id,
+        medicineId: item.medicine.id,
+        medicineName: item.medicine.name,
         quantity: item.quantity,
+        price: item.medicine.price,
       }));
 
-      await axios.post(
-        `${process.env.REACT_APP_API_URL}/api/create-bill/`,
-        { items },
-        {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      console.log('[PHARMACY] Creating order with items:', items);
 
-      setSuccess('Bill created successfully!');
-      setCart([]);
-      setShowCart(false);
-      setTimeout(() => setSuccess(''), 3000);
+      const result = await createPharmacyOrder(patientId, items);
+
+      if (result.success) {
+        setSuccess('Order placed successfully! Order ID: ' + result.id);
+        setCart([]);
+        setShowCart(false);
+        setTimeout(() => setSuccess(''), 3000);
+      } else {
+        setError(result.error || 'Failed to place order');
+      }
     } catch (err) {
-      console.error('Error creating bill:', err);
-      setError(err.response?.data?.error || 'Failed to create bill');
+      console.error('[PHARMACY] Error creating order:', err);
+      setError('Failed to place order. Please try again.');
     } finally {
       setProcessingOrder(false);
     }
@@ -165,7 +173,7 @@ const Pharmacy = () => {
             <span className="flex items-center gap-2">
               <span>Shopping Cart ({cart.length})</span>
               {cart.length > 0 && (
-                <span className="bg-red-500/200 text-white px-2 py-1 rounded-full text-sm font-bold">
+                <span className="bg-red-500 text-white px-2 py-1 rounded-full text-sm font-bold">
                   {cart.reduce((sum, item) => sum + item.quantity, 0)}
                 </span>
               )}

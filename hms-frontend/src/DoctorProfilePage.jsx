@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { getDoctorById, updateDoctor, resolveDoctorIdByAuthUid } from './firebase.service';
 
 const DoctorProfilePage = () => {
   const [profileData, setProfileData] = useState(null);
@@ -8,11 +8,10 @@ const DoctorProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [error, setError] = useState('');
-  const token = localStorage.getItem('authToken');
+  const authDoctorId = localStorage.getItem('userId');
+  const [doctorId, setDoctorId] = useState(null);
 
   const [formData, setFormData] = useState({
-    first_name: '',
-    last_name: '',
     name: '',
     specialization: '',
     phone: '',
@@ -30,18 +29,27 @@ const DoctorProfilePage = () => {
   useEffect(() => {
     const fetchProfile = async () => {
       try {
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/doctor/profile/`, {
-          headers: { 'Authorization': `Token ${token}` },
-        });
-        setProfileData(response.data);
-        setFormData(response.data);
+        const resolvedDoctorId = await resolveDoctorIdByAuthUid(authDoctorId);
+        if (!resolvedDoctorId) {
+          setError('Doctor profile not found. Please contact admin.');
+          return;
+        }
+
+        setDoctorId(resolvedDoctorId);
+        console.log('[DOCTOR_PROFILE] Fetching profile for doctor profile ID:', resolvedDoctorId);
+        const profile = await getDoctorById(resolvedDoctorId);
+        setProfileData(profile);
+        setFormData(profile || {});
+        console.log('[DOCTOR_PROFILE] ✓ Profile fetched');
       } catch (err) {
         setError('Failed to fetch profile');
         console.error('Error:', err);
       }
     };
-    fetchProfile();
-  }, [token]);
+    if (authDoctorId) {
+      fetchProfile();
+    }
+  }, [authDoctorId]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -58,27 +66,25 @@ const DoctorProfilePage = () => {
 
     try {
       const updateData = {
-        first_name: formData.first_name,
-        last_name: formData.last_name,
         name: formData.name,
         specialization: formData.specialization,
         phone: formData.phone,
-        experience: parseInt(formData.experience),
+        experience: parseInt(formData.experience) || 0,
         qualification: formData.qualification,
         bio: formData.bio,
       };
 
-      const response = await axios.put(
-        `${process.env.REACT_APP_API_URL}/api/doctor/profile/`,
-        updateData,
-        {
-          headers: { 'Authorization': `Token ${token}` },
-        }
-      );
+      console.log('[DOCTOR_PROFILE] Updating profile...');
+      const success = await updateDoctor(doctorId, updateData);
 
-      setProfileData(response.data.doctor);
-      setMessage('Profile updated successfully!');
-      setIsEditing(false);
+      if (success) {
+        setProfileData(updateData);
+        setMessage('Profile updated successfully!');
+        setIsEditing(false);
+        console.log('[DOCTOR_PROFILE] ✓ Profile updated');
+      } else {
+        setError('Failed to update profile');
+      }
     } catch (err) {
       setError('Failed to update profile');
       console.error('Error:', err);

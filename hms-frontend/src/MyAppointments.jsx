@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { subscribePatientAppointments } from './firebase.service';
 
 const MyAppointments = ({ refreshTrigger }) => {
   const [appointments, setAppointments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const token = localStorage.getItem('authToken');
+  const patientId = localStorage.getItem('userId');
 
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -29,46 +29,54 @@ const MyAppointments = ({ refreshTrigger }) => {
   };
 
   useEffect(() => {
-    const fetchAppointments = async () => {
+    let unsubscribe = () => {};
+
+    const startSubscription = () => {
       try {
         setLoading(true);
-        
-        if (!token) {
-          setError('No authentication token found. Please login again.');
+
+        if (!patientId) {
+          setError('Patient ID not found. Please login again.');
           setLoading(false);
           return;
         }
 
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/my-appointments/`, {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
+        console.log('[MY_APPOINTMENTS] Subscribing appointments for patient:', patientId);
+        unsubscribe = subscribePatientAppointments(
+          patientId,
+          (appointmentsList) => {
+            setAppointments(appointmentsList || []);
+            setError('');
+            setLoading(false);
+            console.log('[MY_APPOINTMENTS] ✓ Realtime loaded', (appointmentsList || []).length, 'appointments');
           },
-        });
-        
-        setAppointments(response.data || []);
-        setError('');
+          (subscriptionError) => {
+            console.error('[MY_APPOINTMENTS] Subscription error:', subscriptionError);
+            setError('Failed to fetch appointments. Please try again.');
+            setLoading(false);
+          }
+        );
       } catch (err) {
-        console.error('Error fetching appointments:', err);
-        if (err.response?.status === 401) {
-          setError('Authentication failed. Please login again.');
-        } else if (err.response?.status === 403) {
-          setError('Access denied. Please check your permissions.');
-        } else {
-          setError('Failed to fetch appointments');
-        }
-      } finally {
+        console.error('[MY_APPOINTMENTS] Error fetching appointments:', err);
+        setError('Failed to fetch appointments. Please try again.');
         setLoading(false);
       }
     };
-    fetchAppointments();
-  }, [refreshTrigger, token]);
+
+    startSubscription();
+
+    return () => {
+      if (typeof unsubscribe === 'function') {
+        unsubscribe();
+      }
+    };
+  }, [refreshTrigger, patientId]);
 
   const getStatusColor = (status) => {
     switch (status) {
       case 'pending':
         return 'bg-yellow-500/20 text-yellow-400 border-yellow-500/30';
-      case 'accepted':
+      case 'approved':
         return 'bg-green-500/20 text-green-400 border-green-500/30';
       case 'rejected':
         return 'bg-red-500/20 text-red-400 border-red-500/30';
@@ -84,7 +92,7 @@ const MyAppointments = ({ refreshTrigger }) => {
   const getStatusBadge = (status) => {
     const icons = {
       pending: '⏳',
-      accepted: '✓',
+      approved: '✓',
       rejected: '✗',
       completed: '🎉',
       cancelled: '❌',

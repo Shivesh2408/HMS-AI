@@ -1,25 +1,22 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { clearAllAuthData, verifyAuthCleared } from './authUtils';
+import { registerUser, createPatient, createDoctor } from './firebase.service';
 
 const Signup = () => {
-  const [username, setUsername] = useState('');
+  const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [firstName, setFirstName] = useState('');
-  const [lastName, setLastName] = useState('');
   const [password, setPassword] = useState('');
   const [password2, setPassword2] = useState('');
   const [role, setRole] = useState('patient');
+  const [phone, setPhone] = useState('');
+  const [specialization, setSpecialization] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
 
-  // CRITICAL: Clear ALL auth data on signup page load to prevent redirect hijacking
+  // Firebase auth ready
   useEffect(() => {
-    console.log('[SIGNUP_INIT] Page loaded');
-    clearAllAuthData();
-    verifyAuthCleared();
-    console.log('[SIGNUP_INIT] Signup form ready for new user registration');
+    console.log('[SIGNUP_INIT] Page loaded - Firebase auth ready');
   }, []);
 
   const handleSubmit = async (e) => {
@@ -27,10 +24,7 @@ const Signup = () => {
     setError('');
     setMessage('');
 
-    // COMPLETE auth wipe before signup
-    console.log('[SIGNUP_SUBMIT] User clicked signup');
-    clearAllAuthData();
-    verifyAuthCleared();
+    console.log('[SIGNUP_SUBMIT] User clicked signup with role:', role);
 
     if (password !== password2) {
       setError('Passwords do not match');
@@ -42,7 +36,6 @@ const Signup = () => {
       return;
     }
 
-    // VERIFY role is explicitly set
     if (!role || (role !== 'patient' && role !== 'doctor' && role !== 'admin')) {
       setError('Invalid role selected');
       return;
@@ -51,57 +44,58 @@ const Signup = () => {
     setLoading(true);
 
     try {
-      const requestData = {
-        username,
-        email,
-        first_name: firstName,
-        last_name: lastName,
-        password,
-        password2,
-        role, // Explicitly send selected role
-      };
-
-      console.log('[SIGNUP] Submitted with role:', role);
-
-      const response = await fetch(`${process.env.REACT_APP_API_URL}/api/signup/`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(requestData),
+      // Register user with Firebase Auth
+      const registerResult = await registerUser(email, password, {
+        name,
+        role,
+        phone,
       });
 
-      const data = await response.json();
+      if (!registerResult.success) {
+        setError(registerResult.error || 'Registration failed');
+        console.log('[SIGNUP] ERROR:', registerResult.error);
+        setLoading(false);
+        return;
+      }
 
-      console.log('[SIGNUP] Response status:', response.status);
-      console.log('[SIGNUP] Response data:', data);
+      const userId = registerResult.uid;
+      console.log('[SIGNUP] User created with UID:', userId);
 
-      if (response.ok && data.token) {
-        console.log('[SIGNUP] Response received successfully');
-        console.log('[SIGNUP] Token:', data.token.substring(0, 10) + '...');
-        console.log('[SIGNUP] Role:', data.role);
-        console.log('[SIGNUP] User:', data.user?.username);
+      // Create patient or doctor profile based on role
+      let profileResult;
+      if (role === 'patient') {
+        profileResult = await createPatient(userId, {
+          name,
+          phone,
+          email,
+        });
+        console.log('[SIGNUP] Patient profile created');
+      } else if (role === 'doctor') {
+        profileResult = await createDoctor(userId, {
+          name,
+          phone,
+          email,
+          specialization: specialization || 'General',
+        });
+        console.log('[SIGNUP] Doctor profile created');
+      }
 
+      if (profileResult.success || profileResult.id) {
         setMessage('✓ Signup successful! Redirecting to login...');
+        console.log('[SIGNUP] Profile created successfully');
 
-        // Redirect to login page after successful signup
+        // Redirect to login after 2 seconds
         setTimeout(() => {
           console.log('[SIGNUP] Redirecting to login');
           window.location = '/login';
-        }, 1000);
+        }, 2000);
       } else {
-        const errors = [];
-        if (data.username) errors.push('Username: ' + (Array.isArray(data.username) ? data.username[0] : data.username));
-        if (data.email) errors.push('Email: ' + (Array.isArray(data.email) ? data.email[0] : data.email));
-        if (data.password) errors.push('Password: ' + (Array.isArray(data.password) ? data.password[0] : data.password));
-        if (data.password2) errors.push('Confirm password: ' + (Array.isArray(data.password2) ? data.password2[0] : data.password2));
-        if (data.non_field_errors) errors.push(Array.isArray(data.non_field_errors) ? data.non_field_errors[0] : data.non_field_errors);
-        setError(errors.length > 0 ? errors[0] : 'Signup failed. Please try again.');
-        console.log('[SIGNUP] ERROR RESPONSE:', data);
+        setError(profileResult.error || 'Failed to create profile');
+        console.log('[SIGNUP] PROFILE ERROR:', profileResult);
       }
     } catch (err) {
-      setError('Error connecting to server. Make sure backend is running.');
-      console.error('[SIGNUP] FETCH ERROR:', err);
+      setError('Error during signup. Please try again.');
+      console.error('[SIGNUP] ERROR:', err);
     } finally {
       setLoading(false);
     }
@@ -171,18 +165,18 @@ const Signup = () => {
               Create Account
             </h2>
 
-            {/* Username Input */}
+            {/* Name Input */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.5, duration: 0.4 }}
             >
-              <label className="block text-xs sm:text-sm font-semibold text-purple-400 mb-2">Username</label>
+              <label className="block text-xs sm:text-sm font-semibold text-purple-400 mb-2">Full Name</label>
               <input
                 type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                placeholder="Choose username"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Enter full name"
                 className="w-full bg-gray-900/50 border border-purple-500/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-300 text-sm"
                 required
               />
@@ -205,37 +199,39 @@ const Signup = () => {
               />
             </motion.div>
 
-            {/* First Name Input */}
+            {/* Phone Input */}
             <motion.div
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.62, duration: 0.4 }}
             >
-              <label className="block text-xs sm:text-sm font-semibold text-purple-400 mb-2">First Name</label>
+              <label className="block text-xs sm:text-sm font-semibold text-purple-400 mb-2">Phone Number</label>
               <input
-                type="text"
-                value={firstName}
-                onChange={(e) => setFirstName(e.target.value)}
-                placeholder="Your first name"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                placeholder="Your phone number"
                 className="w-full bg-gray-900/50 border border-purple-500/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-300 text-sm"
               />
             </motion.div>
 
-            {/* Last Name Input */}
-            <motion.div
-              initial={{ opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.64, duration: 0.4 }}
-            >
-              <label className="block text-xs sm:text-sm font-semibold text-purple-400 mb-2">Last Name</label>
-              <input
-                type="text"
-                value={lastName}
-                onChange={(e) => setLastName(e.target.value)}
-                placeholder="Your last name"
-                className="w-full bg-gray-900/50 border border-purple-500/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-300 text-sm"
-              />
-            </motion.div>
+            {/* Specialization Input (only for doctors) */}
+            {role === 'doctor' && (
+              <motion.div
+                initial={{ opacity: 0, y: 10 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ delay: 0.64, duration: 0.4 }}
+              >
+                <label className="block text-xs sm:text-sm font-semibold text-purple-400 mb-2">Specialization</label>
+                <input
+                  type="text"
+                  value={specialization}
+                  onChange={(e) => setSpecialization(e.target.value)}
+                  placeholder="e.g., Cardiology, Neurology"
+                  className="w-full bg-gray-900/50 border border-purple-500/30 rounded-lg px-3 sm:px-4 py-2 sm:py-3 text-gray-100 placeholder-gray-600 focus:outline-none focus:border-purple-400 focus:ring-2 focus:ring-purple-400/20 transition-all duration-300 text-sm"
+                />
+              </motion.div>
+            )}
 
             {/* Role Selection */}
             <motion.div

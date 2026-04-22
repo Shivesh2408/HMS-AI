@@ -1,12 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import axios from 'axios';
+import { getPatientBills } from './firebase.service';
 
 const MyBills = () => {
   const [bills, setBills] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const token = localStorage.getItem('authToken');
+  const patientId = localStorage.getItem('userId');
 
   const pageVariants = {
     initial: { opacity: 0, y: 20 },
@@ -32,34 +32,28 @@ const MyBills = () => {
     const fetchBills = async () => {
       try {
         setLoading(true);
-        if (!token) {
-          setError('No authentication token found. Please login again.');
+        if (!patientId) {
+          setError('Patient ID not found. Please login again.');
           setLoading(false);
           return;
         }
 
-        const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/my-bills/`, {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        });
+        console.log('[BILLS] Fetching bills for patient:', patientId);
+        const billsList = await getPatientBills(patientId);
 
-        setBills(response.data || []);
+        setBills(billsList || []);
         setError('');
+        console.log('[BILLS] ✓ Loaded', billsList.length, 'bills');
       } catch (err) {
-        console.error('Error fetching bills:', err);
-        if (err.response?.status === 401) {
-          setError('Authentication failed. Please login again.');
-        } else {
-          setError(err.response?.data?.error || 'Failed to fetch bills');
-        }
+        console.error('[BILLS] Error fetching bills:', err);
+        // Firebase doesn't use err.response, just show generic error
+        setError('Failed to fetch bills. Please try again.');
       } finally {
         setLoading(false);
       }
     };
     fetchBills();
-  }, [token]);
+  }, [patientId]);
 
   const formatDate = (dateStr) => {
     return new Date(dateStr).toLocaleDateString('en-US', {
@@ -91,7 +85,7 @@ const MyBills = () => {
         <motion.div
           initial={{ opacity: 0, y: -10 }}
           animate={{ opacity: 1, y: 0 }}
-          className="p-4 bg-red-500/200/20 border border-red-500/200/30 rounded-lg text-red-400 font-semibold mb-6"
+          className="p-4 bg-red-500/20 border border-red-500/30 rounded-lg text-red-400 font-semibold mb-6"
         >
           ✗ {error}
         </motion.div>

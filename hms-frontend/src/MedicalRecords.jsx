@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { getPatientMedicalRecords } from './firebase.service';
 
 function MedicalRecords() {
   const [prescriptions, setPrescriptions] = useState([]);
@@ -7,36 +8,28 @@ function MedicalRecords() {
   const [records, setRecords] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
-  const token = localStorage.getItem('authToken');
+  const patientId = localStorage.getItem('userId');
 
   const fetchPrescriptions = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/medical-history/`,
-        {
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-        }
-      );
+      console.log('[RECORDS] Fetching medical records for patient:', patientId);
+      const data = await getPatientMedicalRecords(patientId);
       
-      if (!response.ok) {
-        setError('Failed to load prescriptions');
-        return;
+      if (data.error) {
+        console.warn('[RECORDS] Error fetching:', data.error);
+        setError('Failed to load medical records');
+      } else {
+        setPrescriptions(Array.isArray(data.prescriptions) ? data.prescriptions : []);
+        setAppointments(Array.isArray(data.appointments) ? data.appointments : []);
+        setRecords(Array.isArray(data.records) ? data.records : []);
       }
-      
-      const data = await response.json();
-      setPrescriptions(Array.isArray(data.prescriptions) ? data.prescriptions : []);
-      setAppointments(Array.isArray(data.appointments) ? data.appointments : []);
-      setRecords(Array.isArray(data.records) ? data.records : []);
     } catch (error) {
-      console.error('Error fetching prescriptions:', error);
+      console.error('[RECORDS] Error fetching medical records:', error);
       setError('Connection error');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [patientId]);
 
   useEffect(() => {
     fetchPrescriptions();

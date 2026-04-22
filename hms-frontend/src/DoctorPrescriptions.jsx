@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
+import { getDoctorAppointmentsWithPatients, getMedicines, createPrescription } from './firebase.service';
 
 function DoctorPrescriptions() {
   const [appointments, setAppointments] = useState([]);
@@ -9,7 +10,7 @@ function DoctorPrescriptions() {
   const [showForm, setShowForm] = useState(false);
   const [successMsg, setSuccessMsg] = useState('');
   const [errorMsg, setErrorMsg] = useState('');
-  const token = localStorage.getItem('authToken');
+  const doctorId = localStorage.getItem('userId');
 
   const [formData, setFormData] = useState({
     medicine: '',
@@ -19,37 +20,28 @@ function DoctorPrescriptions() {
 
   const fetchAppointments = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/doctor/appointments/`,
-        {
-          headers: { 'Authorization': `Token ${token}` },
-        }
-      );
-      const data = await response.json();
-      console.log('Appointments data:', data);
-      setAppointments(Array.isArray(data) ? data : []);
+      console.log('[PRESCRIPTIONS] Fetching doctor appointments...');
+      const appointmentsList = await getDoctorAppointmentsWithPatients(doctorId);
+      setAppointments(Array.isArray(appointmentsList) ? appointmentsList : []);
+      console.log('[PRESCRIPTIONS] ✓ Loaded', appointmentsList.length, 'appointments');
     } catch (error) {
-      console.error('Error fetching appointments:', error);
+      console.error('[PRESCRIPTIONS] Error fetching appointments:', error);
       setErrorMsg('Failed to load appointments');
     } finally {
       setLoading(false);
     }
-  }, [token]);
+  }, [doctorId]);
 
   const fetchMedicines = useCallback(async () => {
     try {
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/medicines/`,
-        {
-          headers: { 'Authorization': `Token ${token}` },
-        }
-      );
-      const data = await response.json();
-      setMedicines(Array.isArray(data) ? data : []);
+      console.log('[PRESCRIPTIONS] Fetching medicines...');
+      const medicinesList = await getMedicines();
+      setMedicines(Array.isArray(medicinesList) ? medicinesList : []);
+      console.log('[PRESCRIPTIONS] ✓ Loaded', medicinesList.length, 'medicines');
     } catch (error) {
-      console.error('Error fetching medicines:', error);
+      console.error('[PRESCRIPTIONS] Error fetching medicines:', error);
     }
-  }, [token]);
+  }, []);
 
   useEffect(() => {
     fetchAppointments();
@@ -72,53 +64,39 @@ function DoctorPrescriptions() {
     }
 
     try {
-      // Get patient user ID from appointment - try multiple field names
-      const patientUserId = selectedAppointment.patient_user_id || 
-                            selectedAppointment.patient_user || 
-                            selectedAppointment.patient_id;
+      const patientId = selectedAppointment.patientId;
       
-      console.log('Selected Appointment:', selectedAppointment);
-      console.log('Patient User ID:', patientUserId);
+      console.log('[PRESCRIPTION_FORM] Selected Appointment:', selectedAppointment);
+      console.log('[PRESCRIPTION_FORM] Patient ID:', patientId);
       
-      if (!patientUserId) {
-        setErrorMsg('Patient information missing - ID: ' + JSON.stringify(selectedAppointment));
+      if (!patientId) {
+        setErrorMsg('Patient information missing');
         return;
       }
 
-      const response = await fetch(
-        `${process.env.REACT_APP_API_URL}/api/prescription/`,
-        {
-          method: 'POST',
-          headers: {
-            'Authorization': `Token ${token}`,
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            patient_user: patientUserId,
-            medicine: parseInt(formData.medicine),
-            quantity: parseInt(formData.quantity),
-            notes: formData.notes,
-          }),
-        }
-      );
+      console.log('[PRESCRIPTION_FORM] Creating prescription...');
+      const result = await createPrescription(patientId, selectedAppointment.id, {
+        medicine: formData.medicine,
+        quantity: parseInt(formData.quantity),
+        notes: formData.notes,
+      });
 
-      const data = await response.json();
-      console.log('Response:', data);
-
-      if (response.ok) {
+      if (result.success) {
         setSuccessMsg('✓ Prescription created successfully!');
         setFormData({ medicine: '', quantity: '', notes: '' });
         setShowForm(false);
+        console.log('[PRESCRIPTION_FORM] ✓ Success');
         setTimeout(() => {
           setSuccessMsg('');
           setSelectedAppointment(null);
         }, 3000);
       } else {
-        setErrorMsg(data.error || data.message || 'Failed to create prescription');
+        setErrorMsg(result.error || 'Failed to create prescription');
+        console.error('[PRESCRIPTION_FORM] Error:', result.error);
       }
     } catch (error) {
-      console.error('Error:', error);
-      setErrorMsg('Connection error: ' + error.message);
+      console.error('[PRESCRIPTION_FORM] Error:', error);
+      setErrorMsg('Error: ' + error.message);
     }
   };
 

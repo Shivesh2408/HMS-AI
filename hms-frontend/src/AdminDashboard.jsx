@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import axios from 'axios';
+import { getAdminStats } from './firebase.service';
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
 import Security from './Security';
 
@@ -49,23 +49,22 @@ const AdminDashboard = () => {
     try {
       setLoading(true);
       setError('');
-      const token = localStorage.getItem('authToken');
       
       console.log('[ADMIN_DASHBOARD] Fetching stats...');
       
-      const response = await axios.get(`${process.env.REACT_APP_API_URL}/api/admin/stats/`, {
-        headers: {
-          'Authorization': `Token ${token}`,
-          'Content-Type': 'application/json',
-        },
-      });
+      const statsData = await getAdminStats();
 
-      console.log('[ADMIN_DASHBOARD] Stats fetched:', response.data);
-      setStats(response.data);
-      setError('');
+      if (statsData.error) {
+        setError('Failed to load dashboard data');
+        console.error('[ADMIN_DASHBOARD] Error:', statsData.error);
+      } else {
+        console.log('[ADMIN_DASHBOARD] Stats fetched:', statsData);
+        setStats(statsData);
+        setError('');
+      }
     } catch (err) {
       console.error('[ADMIN_DASHBOARD] Error fetching stats:', err);
-      setError(err.response?.data?.error || 'Failed to load dashboard data');
+      setError('Failed to load dashboard data');
     } finally {
       setLoading(false);
     }

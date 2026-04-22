@@ -80,25 +80,25 @@ TEMPLATES = [
 WSGI_APPLICATION = 'hms_backend.wsgi.application'
 
 
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
+# Firebase Configuration
+# https://firebase.google.com/
+FIREBASE_CONFIG = {
+    'apiKey': os.getenv('FIREBASE_API_KEY', ''),
+    'authDomain': os.getenv('FIREBASE_AUTH_DOMAIN', ''),
+    'projectId': os.getenv('FIREBASE_PROJECT_ID', ''),
+    'storageBucket': os.getenv('FIREBASE_STORAGE_BUCKET', ''),
+    'messagingSenderId': os.getenv('FIREBASE_MESSAGING_SENDER_ID', ''),
+    'appId': os.getenv('FIREBASE_APP_ID', ''),
+}
 
-# Simple, reliable database configuration
-db_host = os.getenv('DB_HOST', 'localhost')
+# Firebase service account key path (for backend authentication)
+FIREBASE_SERVICE_ACCOUNT_KEY = os.getenv('FIREBASE_SERVICE_ACCOUNT_KEY', None)
 
+# Database - Using Firebase Realtime Database / Firestore
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': os.getenv('DB_NAME', 'hms_db'),
-        'USER': os.getenv('DB_USER', 'hms_user'),
-        'PASSWORD': os.getenv('DB_PASSWORD', 'hms_password'),
-        'HOST': db_host,
-        'PORT': os.getenv('DB_PORT', '5432'),
-        'CONN_MAX_AGE': 0,  # Disable connection pooling
-        'OPTIONS': {
-            'sslmode': 'require',
-            'connect_timeout': 10,
-        } if 'render.com' in db_host else {},
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': ':memory:',  # Using in-memory DB as placeholder for non-ORM operations
     }
 }
 
