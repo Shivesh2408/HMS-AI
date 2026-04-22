@@ -64,3 +64,4 @@ hms-frontend/.cache
 
 # PostgreSQL
 postgres_data/
+serviceAccountKey.json
