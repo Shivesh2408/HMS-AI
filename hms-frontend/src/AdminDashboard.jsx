@@ -504,14 +504,14 @@ const AdminDashboard = () => {
 
       {/* Mobile Bottom Navigation */}
       <div className="fixed bottom-0 left-0 right-0 md:hidden bg-gradient-to-t from-black via-gray-950 to-transparent border-t border-teal-500/5 backdrop-blur-2xl">
-        <nav className="flex justify-around items-center px-2 py-3 space-x-1">
+        <nav className="flex items-center px-4 py-3 gap-2 overflow-x-auto no-scrollbar">
           {navItems.map((item) => (
             <motion.button
               key={item.id}
               onClick={() => setActiveTab(item.id)}
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              className={`flex flex-col items-center space-y-1 p-2 rounded-lg transition-all duration-300 ${
+              className={`flex flex-col items-center justify-center min-w-[72px] space-y-1 p-2 rounded-lg transition-all duration-300 ${
                 activeTab === item.id ? 'text-teal-400 bg-teal-500/10' : 'text-gray-400 hover:text-gray-200'
               }`}
             >
